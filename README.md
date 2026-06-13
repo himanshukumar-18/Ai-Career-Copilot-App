@@ -1,21 +1,37 @@
 # AI Career Copilot
 
-AI-powered career guidance platform built with Django, DRF, PostgreSQL, and Gemini AI.
+## Overview
 
 ## Features
 
-- JWT Authentication
-- Student Profiles
-- Skills Management
-- Resume Analysis
-- Skill Gap Detection
-- AI Roadmap Generation
-
 ## Tech Stack
 
-- Python
+Frontend
+- React
+- Redux Toolkit
+- Tailwind CSS
+- React Hook Form
+
+Backend
 - Django
-- DRF
+- Django REST Framework
+- JWT Authentication
 - PostgreSQL
-- Gemini API
-- Docker
+
+## Authentication
+- Email Login
+- JWT Auth
+- Google OAuth (Coming Soon)
+- OTP Verification (Coming Soon)
+
+## Project Structure
+
+## Installation
+
+## API Endpoints
+
+## Screenshots
+
+## Roadmap
+
+## Author
