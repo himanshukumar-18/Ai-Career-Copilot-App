@@ -9,10 +9,20 @@ import {
 const initialState = {
     user: null,
 
-    accessToken: null,
-    refreshToken: null,
+    accessToken:
+        localStorage.getItem(
+            "accessToken"
+        ),
 
-    isAuthenticated: false,
+    refreshToken:
+        localStorage.getItem(
+            "refreshToken"
+        ),
+
+    isAuthenticated:
+        !!localStorage.getItem(
+            "accessToken"
+        ),
 
     isLoading: false,
     isSuccess: false,
@@ -28,6 +38,15 @@ const authSlice = createSlice({
 
     reducers: {
         logout: (state) => {
+
+            localStorage.removeItem(
+                "accessToken"
+            );
+
+            localStorage.removeItem(
+                "refreshToken"
+            );
+
             state.user = null;
 
             state.accessToken = null;
@@ -86,6 +105,16 @@ const authSlice = createSlice({
 
                 state.refreshToken =
                     action.payload.refresh;
+
+                localStorage.setItem(
+                    "accessToken",
+                    action.payload.access
+                );
+
+                localStorage.setItem(
+                    "refreshToken",
+                    action.payload.refresh
+                );
 
                 state.isAuthenticated = true;
             })

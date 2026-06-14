@@ -10,7 +10,6 @@ export const registerUser = async (userData) => {
 };
 
 export const loginUser = async (credentials) => {
-  console.log("DETAILS:", credentials)
   const response = await api.post(
     "/auth/login/",
     credentials
@@ -27,6 +26,8 @@ export const getMe = async (token) => {
       },
     }
   );
+
+  console.log(response.data)
 
   return response.data;
 };

@@ -1,5 +1,4 @@
 import { useSelector } from "react-redux";
-import Button from "../../components/ui/Button";
 
 const Dashboard = () => {
 
@@ -7,78 +6,119 @@ const Dashboard = () => {
         (state) => state.auth
     );
 
+    const quickActions = [
+        {
+            title: "Profile",
+            description:
+                "Manage your personal information and career details."
+        },
+        {
+            title: "Resume Builder",
+            description:
+                "Create an ATS-friendly professional resume."
+        },
+        {
+            title: "Skills",
+            description:
+                "Track and manage your technical skills."
+        },
+        {
+            title: "AI Analysis",
+            description:
+                "Get AI-powered career recommendations."
+        }
+    ];
+
     return (
         <div className="space-y-6">
 
-            {/* HERO SECTION */}
+            {/* Welcome Section */}
 
             <section className="border border-[var(--border)]">
 
                 <div className="border-b border-[var(--border)] px-6 py-4">
 
-                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--accent)]">
-                        Career Intelligence Center
+                    <p
+                        className="
+                            font-mono
+                            text-xs
+                            uppercase
+                            tracking-[0.2em]
+                            text-[var(--accent)]
+                        "
+                    >
+                        Student Dashboard
                     </p>
 
                 </div>
 
                 <div className="p-6">
 
-                    <h1 className="text-4xl font-semibold">
+                    <h1 className="text-3xl lg:text-4xl font-semibold">
                         Welcome Back,
                         {" "}
                         {user?.first_name || "Student"}
-                        {" "}
                         👋
                     </h1>
 
                     <p className="mt-3 text-[var(--text-muted)] max-w-2xl">
-                        Manage your skills, projects, resume,
-                        and receive AI-powered career guidance.
+                        Continue building your skills,
+                        improve your resume and receive
+                        AI-powered career guidance.
                     </p>
-
-                    <div className="mt-6">
-                        <Button>
-                            Start AI Analysis
-                        </Button>
-                    </div>
 
                 </div>
 
             </section>
 
-            {/* QUICK MODULES */}
+            {/* Quick Access */}
 
-            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <section
+                className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-2
+                    xl:grid-cols-4
+                    gap-5
+                "
+            >
 
-                {[
-                    "Resume Builder",
-                    "Skills Tracker",
-                    "Projects",
-                    "Career Roadmap"
-                ].map((item) => (
+                {quickActions.map((item) => (
 
                     <div
-                        key={item}
-                        className="border border-[var(--border)]"
+                        key={item.title}
+                        className="
+                            border
+                            border-[var(--border)]
+                        "
                     >
 
-                        <div className="border-b border-[var(--border)] px-5 py-3">
+                        <div
+                            className="
+                                border-b
+                                border-[var(--border)]
+                                px-4
+                                py-3
+                            "
+                        >
 
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                Module
+                            <p
+                                className="
+                                    font-mono
+                                    text-xs
+                                    uppercase
+                                    tracking-[0.15em]
+                                "
+                            >
+                                {item.title}
                             </p>
 
                         </div>
 
                         <div className="p-5">
 
-                            <h2 className="text-xl font-semibold">
-                                {item}
-                            </h2>
-
-                            <p className="mt-2 text-sm text-[var(--text-muted)]">
-                                Open and manage your {item.toLowerCase()}.
+                            <p className="text-sm text-[var(--text-muted)]">
+                                {item.description}
                             </p>
 
                         </div>
@@ -89,73 +129,114 @@ const Dashboard = () => {
 
             </section>
 
-            {/* MAIN CONTENT */}
+            {/* Main Grid */}
 
-            <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <section
+                className="
+                    grid
+                    grid-cols-1
+                    xl:grid-cols-3
+                    gap-6
+                "
+            >
 
-                {/* LEFT */}
+                {/* Left Side */}
 
                 <div className="xl:col-span-2 space-y-6">
 
-                    {/* AI ANALYSIS */}
+                    {/* AI Career Assistant */}
 
                     <div className="border border-[var(--border)]">
 
-                        <div className="border-b border-[var(--border)] px-5 py-3">
+                        <div
+                            className="
+                                border-b
+                                border-[var(--border)]
+                                px-5
+                                py-3
+                            "
+                        >
 
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                AI Analysis
+                            <p
+                                className="
+                                    font-mono
+                                    text-xs
+                                    uppercase
+                                    tracking-[0.15em]
+                                "
+                            >
+                                AI Career Assistant
                             </p>
 
                         </div>
 
                         <div className="p-5">
 
-                            <h2 className="text-2xl font-semibold">
-                                Career Recommendations
+                            <h2 className="text-xl font-semibold">
+                                Personalized Career Guidance
                             </h2>
 
                             <p className="mt-3 text-[var(--text-muted)]">
-                                Upload your resume and skills to receive
-                                personalized career suggestions, skill-gap
-                                analysis, and custom learning roadmaps.
+                                Analyze your profile,
+                                discover skill gaps,
+                                and generate personalized
+                                learning roadmaps.
                             </p>
-
-                            <div className="mt-6">
-                                <Button>
-                                    Analyze Profile
-                                </Button>
-                            </div>
 
                         </div>
 
                     </div>
 
-                    {/* RECENT ACTIVITY */}
+                    {/* Learning Progress */}
 
                     <div className="border border-[var(--border)]">
 
-                        <div className="border-b border-[var(--border)] px-5 py-3">
+                        <div
+                            className="
+                                border-b
+                                border-[var(--border)]
+                                px-5
+                                py-3
+                            "
+                        >
 
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                Activity Log
+                            <p
+                                className="
+                                    font-mono
+                                    text-xs
+                                    uppercase
+                                    tracking-[0.15em]
+                                "
+                            >
+                                Learning Progress
                             </p>
 
                         </div>
 
-                        <div className="p-5 space-y-4">
+                        <div className="p-5">
 
-                            <div className="border-b border-[var(--border)] pb-3">
-                                Completed Authentication Module
+                            <div
+                                className="
+                                    h-3
+                                    border
+                                    border-[var(--border)]
+                                "
+                            >
+
+                                <div
+                                    className="
+                                        h-full
+                                        w-[35%]
+                                        bg-white
+                                    "
+                                />
+
                             </div>
 
-                            <div className="border-b border-[var(--border)] pb-3">
-                                Connected React With Django API
-                            </div>
-
-                            <div>
-                                Started Dashboard Development
-                            </div>
+                            <p className="mt-4 text-sm text-[var(--text-muted)]">
+                                Complete your profile and
+                                skills to unlock AI recommendations.
+                            </p>
 
                         </div>
 
@@ -163,23 +244,37 @@ const Dashboard = () => {
 
                 </div>
 
-                {/* RIGHT */}
+                {/* Right Side */}
 
                 <div className="space-y-6">
 
-                    {/* PROFILE */}
+                    {/* Profile Overview */}
 
                     <div className="border border-[var(--border)]">
 
-                        <div className="border-b border-[var(--border)] px-5 py-3">
+                        <div
+                            className="
+                                border-b
+                                border-[var(--border)]
+                                px-5
+                                py-3
+                            "
+                        >
 
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                Profile
+                            <p
+                                className="
+                                    font-mono
+                                    text-xs
+                                    uppercase
+                                    tracking-[0.15em]
+                                "
+                            >
+                                Profile Overview
                             </p>
 
                         </div>
 
-                        <div className="p-5 space-y-5">
+                        <div className="p-5 space-y-4">
 
                             <div>
 
@@ -201,7 +296,7 @@ const Dashboard = () => {
                                     Email
                                 </p>
 
-                                <p className="mt-1">
+                                <p className="mt-1 break-all">
                                     {user?.email}
                                 </p>
 
@@ -223,42 +318,28 @@ const Dashboard = () => {
 
                     </div>
 
-                    {/* PROGRESS */}
+                    {/* Recommended Next Step */}
 
                     <div className="border border-[var(--border)]">
 
-                        <div className="border-b border-[var(--border)] px-5 py-3">
+                        <div
+                            className="
+                                border-b
+                                border-[var(--border)]
+                                px-5
+                                py-3
+                            "
+                        >
 
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                Progress
-                            </p>
-
-                        </div>
-
-                        <div className="p-5">
-
-                            <div className="h-3 border border-[var(--border)]">
-
-                                <div className="h-full w-[35%] bg-white" />
-
-                            </div>
-
-                            <p className="mt-3 text-sm text-[var(--text-muted)]">
-                                35% Profile Completion
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    {/* GOAL */}
-
-                    <div className="border border-[var(--border)]">
-
-                        <div className="border-b border-[var(--border)] px-5 py-3">
-
-                            <p className="font-mono text-xs uppercase tracking-[0.2em]">
-                                Next Goal
+                            <p
+                                className="
+                                    font-mono
+                                    text-xs
+                                    uppercase
+                                    tracking-[0.15em]
+                                "
+                            >
+                                Next Step
                             </p>
 
                         </div>
@@ -266,8 +347,9 @@ const Dashboard = () => {
                         <div className="p-5">
 
                             <p className="text-[var(--text-muted)]">
-                                Complete AI Career Copilot MVP
-                                and deploy it to production.
+                                Complete your profile,
+                                add skills and generate
+                                your first AI career analysis.
                             </p>
 
                         </div>
