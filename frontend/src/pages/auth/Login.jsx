@@ -2,12 +2,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import {
+    GoogleLogin
+} from "@react-oauth/google";
 
 import Panel from "../../components/ui/Panel";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 
-import { loginThunk } from "../../features/auth/authThunk";
+import { loginThunk, googleLoginThunk, getMeThunk } from "../../features/auth/authThunk";
+import { resetAuthState } from "@/features/auth/authSlice";
 
 const Login = () => {
 
@@ -18,7 +22,9 @@ const Login = () => {
         isAuthenticated,
         isLoading,
         isError,
+        isSuccess,
         message,
+        user
     } = useSelector((state) => state.auth);
 
     const {
@@ -27,23 +33,76 @@ const Login = () => {
         formState: { errors },
     } = useForm();
 
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
 
-        dispatch(
+        const result = await dispatch(
             loginThunk({
                 email: data.email,
                 password: data.password,
             })
         );
+
+        if (
+            loginThunk.fulfilled.match(result)
+        ) {
+
+            await dispatch(
+                getMeThunk(
+                    result.payload.access
+                )
+            );
+
+        }
     };
 
     useEffect(() => {
 
-        if (isAuthenticated) {
-            navigate("/dashboard");
+        if (
+            isAuthenticated &&
+            user
+        ) {
+
+            if (
+                user.role === "ADMIN"
+            ) {
+
+                navigate("/admin");
+
+            } else {
+
+                navigate("/dashboard");
+
+            }
+
         }
 
-    }, [isAuthenticated, navigate]);
+    }, [
+        isAuthenticated,
+        user,
+        navigate,
+    ]);
+
+    useEffect(() => {
+
+        if (isError || isSuccess) {
+
+            const timer = setTimeout(() => {
+
+                dispatch(
+                    resetAuthState()
+                );
+
+            }, 4000);
+
+            return () =>
+                clearTimeout(timer);
+        }
+
+    }, [
+        isError,
+        isSuccess,
+        dispatch,
+    ]);
 
     return (
         <Panel>
@@ -68,11 +127,44 @@ const Login = () => {
 
             {/* Error Message */}
 
-            {isError && (
-                <div className="mt-5 border border-red-500 p-3 text-sm text-red-500">
-                    {message || "Authentication Failed"}
-                </div>
-            )}
+            {
+                isError && (
+                    <div
+                        className="
+                mt-5
+                border
+                border-red-500
+                p-3
+                text-sm
+                text-red-500
+            "
+                    >
+                        {
+                            typeof message === "string"
+                                ? message
+                                : "Something went wrong"
+                        }
+                    </div>
+                )
+            }
+
+            {
+                isSuccess && (
+                    <div
+                        className="
+                mt-5
+                border
+                border-green-500
+                p-3
+                text-sm
+                text-green-500
+            "
+                    >
+                        {message ||
+                            "Operation Successful"}
+                    </div>
+                )
+            }
 
             {/* Form */}
 
@@ -154,6 +246,76 @@ const Login = () => {
                             {errors.password.message}
                         </p>
                     )}
+
+                </div>
+
+                <div className="relative py-4">
+
+                    <div className="absolute inset-0 flex items-center">
+
+                        <div
+                            className="
+                w-full
+                border-t
+                border-[var(--border)]
+            "
+                        />
+
+                    </div>
+
+                    <div className="relative flex justify-center">
+
+                        <span
+                            className="
+                bg-[var(--background)]
+                px-4
+                text-xs
+                text-[var(--text-muted)]
+            "
+                        >
+                            OR
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div className="flex justify-center">
+
+                    <GoogleLogin
+
+                        theme="outline"
+
+                        size="large"
+
+                        text="continue_with"
+
+                        shape="rectangular"
+
+                        width="full"
+
+                        onSuccess={(
+                            credentialResponse
+                        ) => {
+
+                            dispatch(
+                                googleLoginThunk(
+                                    credentialResponse
+                                        .credential
+                                )
+                            );
+
+                        }}
+
+                        onError={() => {
+
+                            console.log(
+                                "Google Login Failed"
+                            );
+
+                        }}
+
+                    />
 
                 </div>
 

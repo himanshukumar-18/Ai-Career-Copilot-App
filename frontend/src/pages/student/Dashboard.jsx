@@ -57,7 +57,11 @@ const Dashboard = () => {
                     <h1 className="text-3xl lg:text-4xl font-semibold">
                         Welcome Back,
                         {" "}
-                        {user?.first_name || "Student"}
+                        {
+                            user?.first_name?.trim()
+                                ? user.first_name
+                                : user?.email?.split("@")[0]
+                        }
                         👋
                     </h1>
 

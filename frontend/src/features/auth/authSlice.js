@@ -4,6 +4,8 @@ import {
     loginThunk,
     registerThunk,
     getMeThunk,
+    verifyOTPThunk,
+    googleLoginThunk
 } from "./authThunk";
 
 const initialState = {
@@ -65,7 +67,6 @@ const authSlice = createSlice({
             state.isLoading = false;
             state.isSuccess = false;
             state.isError = false;
-
             state.message = null;
         },
     },
@@ -139,7 +140,95 @@ const authSlice = createSlice({
 
             .addCase(getMeThunk.rejected, (state) => {
                 state.isLoading = false;
-            });
+            })
+
+            .addCase(
+                verifyOTPThunk.pending,
+
+                (state) => {
+
+                    state.isLoading = true;
+                }
+            )
+
+            .addCase(
+                verifyOTPThunk.fulfilled,
+
+                (state, action) => {
+
+                    state.isLoading = false;
+
+                    state.isSuccess = true;
+
+                    state.message =
+                        action.payload.detail;
+                }
+            )
+
+            .addCase(
+                verifyOTPThunk.rejected,
+
+                (state, action) => {
+
+                    state.isLoading = false;
+
+                    state.isError = true;
+
+                    state.message =
+                        action.payload?.detail;
+                }
+            )
+
+            .addCase(
+                googleLoginThunk.pending,
+
+                (state) => {
+
+                    state.isLoading = true;
+                }
+            )
+
+            .addCase(
+                googleLoginThunk.fulfilled,
+
+                (state, action) => {
+
+                    localStorage.setItem(
+                        "accessToken",
+                        action.payload.access
+                    );
+
+                    localStorage.setItem(
+                        "refreshToken",
+                        action.payload.refresh
+                    );
+
+                    state.accessToken =
+                        action.payload.access;
+
+                    state.refreshToken =
+                        action.payload.refresh;
+
+                    state.isAuthenticated =
+                        true;
+
+                    state.isLoading = false;
+                }
+            )
+
+            .addCase(
+                googleLoginThunk.rejected,
+
+                (state, action) => {
+
+                    state.isLoading = false;
+
+                    state.isError = true;
+
+                    state.message =
+                        action.payload?.detail;
+                }
+            )
     },
 });
 

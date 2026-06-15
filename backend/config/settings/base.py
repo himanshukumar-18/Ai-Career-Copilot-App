@@ -1,6 +1,11 @@
 from pathlib import Path
 from decouple import config
 
+
+RATELIMIT_VIEW = (
+    "config.ratelimit.custom_ratelimit_view"
+)
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 INSTALLED_APPS = [
@@ -92,8 +97,27 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
 }
+
+GOOGLE_CLIENT_ID = config(
+    "GOOGLE_CLIENT_ID"
+)
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+# SMTP settings (provide these via environment variables / .env)
+# Example:
+# EMAIL_HOST=smtp.gmail.com
+# EMAIL_PORT=587
+# EMAIL_HOST_USER=your_email@gmail.com
+# EMAIL_HOST_PASSWORD=your_app_password
+# EMAIL_USE_TLS=True
+# DEFAULT_FROM_EMAIL="your_email@gmail.com"
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)

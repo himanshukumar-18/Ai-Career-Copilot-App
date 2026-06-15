@@ -4,6 +4,8 @@ from .views import (
     RegisterAPIView,
     LoginAPIView,
     MeAPIView,
+    GoogleLoginAPIView,
+    VerifyOTPAPIView
 )
 
 urlpatterns = [
@@ -24,4 +26,14 @@ urlpatterns = [
         MeAPIView.as_view(),
         name="me",
     ),
+    path(
+        "google/",
+        GoogleLoginAPIView.as_view(),
+        name="google-login"
+    ),
+    path(
+    "verify-otp/",
+    VerifyOTPAPIView.as_view(),
+    name="verify-otp"
+),
 ]

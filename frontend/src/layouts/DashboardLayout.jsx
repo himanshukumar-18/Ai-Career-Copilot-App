@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Menu, X } from "lucide-react";
 
 import { logout } from "../features/auth/authSlice";
-import path from "node:path";
+
 
 const DashboardLayout = () => {
     const dispatch = useDispatch();
@@ -156,9 +156,11 @@ const DashboardLayout = () => {
                             font-semibold
                         "
                     >
-                        {user?.first_name
-                            ?.charAt(0)
-                            ?.toUpperCase() || "U"}
+                        {
+                            user?.first_name?.trim()
+                                ? user.first_name.charAt(0).toUpperCase()
+                                : user?.email?.charAt(0).toUpperCase() || "U"
+                        }
                     </div>
 
                     <h2 className="mt-4 font-semibold">

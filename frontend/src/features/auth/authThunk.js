@@ -4,6 +4,8 @@ import {
     registerUser,
     loginUser,
     getMe,
+    verifyOTP,
+    googleLogin
 } from "./authService";
 
 
@@ -16,6 +18,14 @@ export const registerThunk = createAsyncThunk(
         try {
             return await registerUser(userData);
         } catch (error) {
+            if (error.response?.status === 429) {
+
+                return thunkAPI.rejectWithValue(
+                    "Too many registration attempts. Please wait a minute."
+                );
+
+            }
+
             return thunkAPI.rejectWithValue(
                 error.response?.data ||
                 error.message
@@ -23,6 +33,37 @@ export const registerThunk = createAsyncThunk(
         }
     }
 );
+
+// otp
+export const verifyOTPThunk =
+    createAsyncThunk(
+        "auth/verify-otp",
+
+        async (data, thunkAPI) => {
+
+            try {
+
+                return await verifyOTP(
+                    data
+                );
+
+            } catch (error) {
+                if (error.response?.status === 429) {
+
+                    return thunkAPI.rejectWithValue(
+                        "Too many OTP attempts. Please wait a minute."
+                    );
+
+                }
+
+                return thunkAPI.rejectWithValue(
+                    error.response?.data
+                );
+
+            }
+
+        }
+    );
 
 
 // Login User
@@ -31,20 +72,37 @@ export const loginThunk = createAsyncThunk(
     "auth/login",
 
     async (credentials, thunkAPI) => {
+
         try {
-            return await loginUser(credentials);
+
+            return await loginUser(
+                credentials
+            );
+
         } catch (error) {
+
+            if (
+                error.response?.status === 429
+            ) {
+
+                return thunkAPI.rejectWithValue(
+                    "Too many login attempts. Please wait a minute."
+                );
+
+            }
+
             return thunkAPI.rejectWithValue(
+                error.response?.data?.detail ||
                 error.response?.data ||
                 error.message
             );
+
         }
     }
 );
 
 
 // Current User
-
 export const getMeThunk = createAsyncThunk(
     "auth/me",
 
@@ -59,3 +117,45 @@ export const getMeThunk = createAsyncThunk(
         }
     }
 );
+
+export const googleLoginThunk =
+    createAsyncThunk(
+        "auth/google-login",
+
+        async (
+            credential,
+            thunkAPI
+        ) => {
+
+            try {
+
+                const response =
+                    await googleLogin(
+                        credential
+                    );
+
+                await thunkAPI.dispatch(
+                    getMeThunk(
+                        response.access
+                    )
+                );
+
+                return response;
+
+            } catch (error) {
+                if (error.response?.status === 429) {
+
+                    return thunkAPI.rejectWithValue(
+                        "Too many Google login attempts. Please wait a minute."
+                    );
+
+                }
+
+                return thunkAPI.rejectWithValue(
+                    error.response?.data
+                );
+
+            }
+
+        }
+    );

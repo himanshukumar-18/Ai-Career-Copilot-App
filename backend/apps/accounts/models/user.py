@@ -19,6 +19,10 @@ class User(AbstractUser):
     email = models.EmailField(
         unique=True
     )
+    
+    is_verified = models.BooleanField(
+        default=False
+    )
 
     USERNAME_FIELD = "email"
 

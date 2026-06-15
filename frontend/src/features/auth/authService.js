@@ -9,6 +9,16 @@ export const registerUser = async (userData) => {
   return response.data;
 };
 
+export const verifyOTP = async (data) => {
+
+  const response = await api.post(
+    "/auth/verify-otp/",
+    data
+  );
+
+  return response.data;
+};
+
 export const loginUser = async (credentials) => {
   const response = await api.post(
     "/auth/login/",
@@ -27,7 +37,20 @@ export const getMe = async (token) => {
     }
   );
 
-  console.log(response.data)
 
   return response.data;
 };
+
+export const googleLogin =
+  async (token) => {
+
+    const response =
+      await api.post(
+        "/auth/google/",
+        {
+          token,
+        }
+      );
+
+    return response.data;
+  };

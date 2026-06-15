@@ -11,6 +11,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Dashboard from "../pages/student/Dashboard";
+import VerifyOTP from "@/pages/auth/VerifyOTP";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -31,6 +32,11 @@ const AppRoutes = () => {
                     <Route
                         path="/register"
                         element={<Register />}
+                    />
+
+                    <Route
+                        path="/verify-otp"
+                        element={<VerifyOTP />}
                     />
                 </Route>
 
