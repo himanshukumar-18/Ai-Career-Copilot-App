@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
 )
 from django.utils import timezone
+from django.core.cache import cache
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -128,9 +129,30 @@ class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        
+        cache_key = (
+            f"user_{request.user.id}"
+        )
+        
+        cache_user = (
+            cache.get(
+                cache_key
+            )
+        )
+        
+        if cache_user:
+            return Response(
+                cache_user
+            )
 
         serializer = UserSerializer(
             request.user
+        )
+        
+        cache.set(
+            cache_key,
+            serializer.data,
+            timeout=300,
         )
 
         return Response(
