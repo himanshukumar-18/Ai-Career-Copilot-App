@@ -27,16 +27,12 @@ export const loginUser = async (credentials) => {
   return response.data;
 };
 
-export const getMe = async (token) => {
-  const response = await api.get(
-    "/auth/me/",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+export const getMe = async () => {
 
+  const response =
+    await api.get(
+      "/auth/me/"
+    );
 
   return response.data;
 };

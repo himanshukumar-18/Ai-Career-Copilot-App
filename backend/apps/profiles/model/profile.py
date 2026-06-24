@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from cloudinary.models import CloudinaryField
 
 class Profile(models.Model):
     
@@ -9,8 +10,8 @@ class Profile(models.Model):
         related_name="profile"
     )
     
-    profile_picture = models.ImageField(
-        upload_to="profiles/",
+    profile_picture = CloudinaryField(
+        "profile",
         blank=True,
         null=True
     )

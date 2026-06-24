@@ -11,6 +11,7 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 
 import { loginThunk, googleLoginThunk, getMeThunk } from "../../features/auth/authThunk";
+import { getProfileThunk } from "@/features/profile/profileThunk";
 import { resetAuthState } from "@/features/auth/authSlice";
 
 const Login = () => {
@@ -50,6 +51,10 @@ const Login = () => {
                 getMeThunk(
                     result.payload.access
                 )
+            );
+
+            await dispatch(
+                getProfileThunk()
             );
 
         }

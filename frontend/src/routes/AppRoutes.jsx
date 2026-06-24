@@ -10,8 +10,12 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
-import Dashboard from "../pages/student/Dashboard";
 import VerifyOTP from "@/pages/auth/VerifyOTP";
+
+// student pages
+import Dashboard from "../pages/student/Dashboard";
+import Profile from "../pages/student/Profile";
+
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -52,6 +56,11 @@ const AppRoutes = () => {
                     <Route
                         path="/dashboard"
                         element={<Dashboard />}
+                    />
+
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
                     />
                 </Route>
 

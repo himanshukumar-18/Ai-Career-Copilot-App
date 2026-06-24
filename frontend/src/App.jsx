@@ -19,12 +19,11 @@ function App() {
     if (token) {
 
       dispatch(
-        getMeThunk(token)
+        getMeThunk()
       );
-
     }
 
-  }, [dispatch]);
+  }, []);
 
   return <AppRoutes />;
 }

@@ -1,8 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Menu, X } from "lucide-react";
 
+import {
+    Menu,
+    X,
+    LayoutDashboard,
+    FileText,
+    Brain,
+    Map,
+    LogOut,
+    Settings
+} from "lucide-react";
+
+import { getProfileThunk } from "../features/profile/profileThunk";
 import { logout } from "../features/auth/authSlice";
 
 
@@ -13,6 +24,10 @@ const DashboardLayout = () => {
         (state) => state.auth
     );
 
+    const { profile } = useSelector(
+        (state) => state.profile
+    )
+
     const [isSidebarOpen, setIsSidebarOpen] =
         useState(false);
 
@@ -20,24 +35,69 @@ const DashboardLayout = () => {
         dispatch(logout());
     };
 
+    useEffect(() => {
+
+        if (!profile) {
+
+            dispatch(
+                getProfileThunk()
+            );
+
+        }
+
+    }, [
+        dispatch,
+        profile,
+    ]);
+
     const navItems = [
         {
             name: "Dashboard",
             path: "/dashboard",
+            icon: LayoutDashboard,
         },
         {
             name: "Resume Builder",
             path: "/resume",
+            icon: FileText,
         },
         {
             name: "Skills",
             path: "/skills",
+            icon: Brain,
         },
         {
             name: "Career Roadmap",
             path: "/roadmap",
-        }
+            icon: Map,
+        },
     ];
+
+    const profileFields = [
+        profile?.profile_picture,
+        profile?.headline,
+        profile?.bio,
+        profile?.phone,
+        profile?.location,
+        profile?.career_goal,
+        profile?.github_url,
+        profile?.linkedin_url,
+        profile?.portfolio_url,
+    ];
+
+    const completedFields =
+        profileFields.filter(
+            (field) =>
+                field &&
+                String(field).trim() !== ""
+        ).length;
+
+    const profileCompletion =
+        Math.round(
+            (completedFields /
+                profileFields.length) *
+            100
+        );
 
     return (
         <div className="h-screen bg-[var(--background)] flex overflow-hidden">
@@ -125,41 +185,73 @@ const DashboardLayout = () => {
 
                 {/* Profile */}
 
-                <Link
-                    to="/profile"
-                    onClick={() =>
-                        setIsSidebarOpen(false)
-                    }
+                <div
                     className="
-                        block
-                        border-b
-                        border-[var(--border)]
-                        p-6
-                        text-center
-                        hover:bg-white/5
-                        transition-all
-                    "
+        border-b
+        border-[var(--border)]
+        p-6
+
+        flex
+        flex-col
+        items-center
+        justify-center
+    "
                 >
 
                     <div
                         className="
-                            w-16
-                            h-16
-                            mx-auto
-                            border
-                            border-[var(--border)]
-                            rounded-full
-                            flex
-                            items-center
-                            justify-center
-                            text-xl
-                            font-semibold
-                        "
+                                    w-24
+                                    h-24
+                                    rounded-full
+
+                                    overflow-hidden
+
+                                    border
+                                    border-[var(--border)]
+
+                                    flex
+                                    items-center
+                                    justify-center
+
+                                    bg-[var(--surface)]
+    "
                     >
                         {
-                            user?.first_name?.trim()
-                                ? user.first_name.charAt(0).toUpperCase()
-                                : user?.email?.charAt(0).toUpperCase() || "U"
+                            profile?.profile_picture ? (
+
+                                <img
+                                    src={profile.profile_picture}
+                                    alt="Profile"
+                                    className="
+        w-full
+        h-full
+        object-cover
+    "
+                                />
+
+                            ) : (
+
+                                <div
+                                    className="
+                h-12
+                w-12
+
+                rounded-full
+
+                flex
+                items-center
+                justify-center
+            "
+                                >
+                                    {
+                                        user?.first_name
+                                            ?.charAt(0)
+                                            .toUpperCase() ||
+                                        "U"
+                                    }
+                                </div>
+
+                            )
                         }
                     </div>
 
@@ -170,6 +262,21 @@ const DashboardLayout = () => {
                         {user?.last_name}
 
                     </h2>
+
+                    <p
+                        className="
+        mt-1
+        text-xs
+        text-[var(--accent)]
+        uppercase
+        tracking-[0.15em]
+    "
+                    >
+                        {
+                            profile?.headline ||
+                            "Career Operator"
+                        }
+                    </p>
 
                     <div
                         className="
@@ -199,7 +306,54 @@ const DashboardLayout = () => {
                         {user?.email}
                     </p>
 
-                </Link>
+                    <div className="w-full mt-5">
+
+                        <div
+                            className="
+            flex
+            justify-between
+            text-[10px]
+            uppercase
+            tracking-[0.15em]
+            text-[var(--text-muted)]
+        "
+                        >
+                            <span>
+                                Profile
+                            </span>
+
+                            <span>
+                                {profileCompletion}%
+                            </span>
+                        </div>
+
+                        <div
+                            className="
+            mt-2
+            h-2
+
+            border
+            border-[var(--border)]
+
+            overflow-hidden
+        "
+                        >
+                            <div
+                                className="
+                h-full
+                bg-[var(--accent)]
+                transition-all
+                duration-500
+            "
+                                style={{
+                                    width: `${profileCompletion}%`,
+                                }}
+                            />
+                        </div>
+
+                    </div>
+
+                </div>
 
                 {/* Navigation */}
 
@@ -228,7 +382,19 @@ const DashboardLayout = () => {
                             `
                             }
                         >
-                            {item.name}
+                            <div
+                                className="
+        flex
+        items-center
+        gap-3
+    "
+                            >
+                                <item.icon size={16} />
+
+                                <span>
+                                    {item.name}
+                                </span>
+                            </div>
                         </NavLink>
 
                     ))}
@@ -237,22 +403,71 @@ const DashboardLayout = () => {
 
                 {/* Logout */}
 
-                <div className="border-t border-[var(--border)] p-4">
+                <div
+                    className="
+        mt-auto
+        p-4
+        space-y-3
+    "
+                >
+
+                    <Link
+                        to="/profile"
+                        onClick={() =>
+                            setIsSidebarOpen(false)
+                        }
+                        className="
+        w-full
+
+        border
+        border-[var(--border)]
+
+        px-4
+        py-3
+
+        flex
+        items-center
+        justify-center
+        gap-2
+
+        text-sm
+
+        hover:bg-white/5
+
+        transition-all
+    "
+                    >
+                        <Settings size={16} />
+
+                        Settings
+                    </Link>
 
                     <button
                         onClick={handleLogout}
                         className="
-                            w-full
-                            border
-                            border-red-500
-                            px-4
-                            py-3
-                            text-red-500
-                            hover:bg-red-500
-                            hover:text-black
-                            transition-all
-                        "
+        w-full
+
+        border
+        border-red-500/50
+
+        px-4
+        py-3
+
+        flex
+        items-center
+        justify-center
+        gap-2
+
+        text-sm
+        text-red-400
+
+        hover:bg-red-500/10
+
+        transition-all
+    "
                     >
+                        <LogOut size={16} />
+
                         Logout
                     </button>
 
@@ -262,9 +477,21 @@ const DashboardLayout = () => {
 
                 <div className="border-t border-[var(--border)] p-4">
 
-                    <p className="font-mono text-xs tracking-[0.2em] text-[var(--text-muted)] uppercase text-center">
-                        Built with ❤️ by Himanshu Kumar • AI Career Copilot
-                    </p>
+                    <div
+                        className="
+        text-center
+        text-[10px]
+        uppercase
+        tracking-[0.2em]
+        text-[var(--text-muted)]
+    "
+                    >
+                        <p>AI Career Copilot v1.0</p>
+
+                        <p className="mt-2">
+                            Powered by React + Django
+                        </p>
+                    </div>
 
                 </div>
 

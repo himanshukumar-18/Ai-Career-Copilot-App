@@ -1,4 +1,6 @@
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+
 
 const Dashboard = () => {
 
@@ -6,35 +8,69 @@ const Dashboard = () => {
         (state) => state.auth
     );
 
+    const { profile } = useSelector(
+        (state) => state.profile
+    );
+
     const quickActions = [
         {
             title: "Profile",
             description:
-                "Manage your personal information and career details."
+                "Manage your personal information and career details.",
+            link: "/profile"
         },
         {
             title: "Resume Builder",
             description:
-                "Create an ATS-friendly professional resume."
+                "Create an ATS-friendly professional resume.",
+            link: "/resume-builder"
         },
         {
             title: "Skills",
             description:
-                "Track and manage your technical skills."
+                "Track and manage your technical skills.",
+            link: "/skills"
         },
         {
             title: "AI Analysis",
             description:
-                "Get AI-powered career recommendations."
+                "Get AI-powered career recommendations.",
+            link: "/ai-analysis"
         }
     ];
+
+    const profileFields = [
+        profile?.profile_picture,
+        profile?.headline,
+        profile?.bio,
+        profile?.phone,
+        profile?.location,
+        profile?.career_goal,
+        profile?.github_url,
+        profile?.linkedin_url,
+        profile?.portfolio_url,
+    ];
+
+    const completedFields =
+        profileFields.filter(
+            (field) =>
+                field &&
+                String(field).trim() !== ""
+        ).length;
+
+    const profileCompletion =
+        Math.round(
+            (completedFields /
+                profileFields.length) *
+            100
+        );
 
     return (
         <div className="space-y-6">
 
             {/* Welcome Section */}
 
-            <section className="border border-[var(--border)]">
+            <section className="border bg-[var(--surface)] border-[var(--border)]">
 
                 <div className="border-b border-[var(--border)] px-6 py-4">
 
@@ -89,11 +125,13 @@ const Dashboard = () => {
 
                 {quickActions.map((item) => (
 
+
                     <div
                         key={item.title}
                         className="
                             border
                             border-[var(--border)]
+                            bg-[var(--surface)]
                         "
                     >
 
@@ -105,17 +143,19 @@ const Dashboard = () => {
                                 py-3
                             "
                         >
-
-                            <p
-                                className="
+                            <Link
+                                to={item.link} >
+                                <p
+                                    className="
                                     font-mono
                                     text-xs
                                     uppercase
                                     tracking-[0.15em]
                                 "
-                            >
-                                {item.title}
-                            </p>
+                                >
+                                    {item.title}
+                                </p>
+                            </Link>
 
                         </div>
 
@@ -146,11 +186,11 @@ const Dashboard = () => {
 
                 {/* Left Side */}
 
-                <div className="xl:col-span-2 space-y-6">
+                <div className="xl:col-span-2 space-y-6 ">
 
                     {/* AI Career Assistant */}
 
-                    <div className="border border-[var(--border)]">
+                    <div className="border border-[var(--border)] bg-[var(--surface)]">
 
                         <div
                             className="
@@ -174,7 +214,7 @@ const Dashboard = () => {
 
                         </div>
 
-                        <div className="p-5">
+                        <div className="p-5 ">
 
                             <h2 className="text-xl font-semibold">
                                 Personalized Career Guidance
@@ -193,7 +233,7 @@ const Dashboard = () => {
 
                     {/* Learning Progress */}
 
-                    <div className="border border-[var(--border)]">
+                    <div className="border border-[var(--border)] bg-[var(--surface)]">
 
                         <div
                             className="
@@ -221,25 +261,71 @@ const Dashboard = () => {
 
                             <div
                                 className="
-                                    h-3
-                                    border
-                                    border-[var(--border)]
-                                "
+            flex
+            items-center
+            justify-between
+
+            mb-3
+
+            text-xs
+            uppercase
+            tracking-[0.15em]
+
+            text-[var(--text-muted)]
+        "
+                            >
+                                <span>
+                                    Profile Completion
+                                </span>
+
+                                <span>
+                                    {profileCompletion}%
+                                </span>
+                            </div>
+
+                            <div
+                                className="
+            h-3
+
+            border
+            border-[var(--border)]
+
+            overflow-hidden
+        "
                             >
 
                                 <div
                                     className="
-                                        h-full
-                                        w-[35%]
-                                        bg-white
-                                    "
+                h-full
+
+                bg-[var(--accent)]
+
+                transition-all
+                duration-700
+            "
+                                    style={{
+                                        width: `${profileCompletion}%`,
+                                    }}
                                 />
 
                             </div>
 
-                            <p className="mt-4 text-sm text-[var(--text-muted)]">
-                                Complete your profile and
-                                skills to unlock AI recommendations.
+                            <p
+                                className="
+            mt-4
+
+            text-sm
+
+            text-[var(--text-muted)]
+        "
+                            >
+                                {
+                                    profileCompletion === 100
+
+                                        ? "Your profile is fully completed. You can now access advanced AI recommendations."
+
+                                        : `Complete ${9 - completedFields} more section${9 - completedFields > 1 ? "s" : ""} to unlock better AI recommendations.`
+                                }
                             </p>
 
                         </div>
@@ -254,7 +340,7 @@ const Dashboard = () => {
 
                     {/* Profile Overview */}
 
-                    <div className="border border-[var(--border)]">
+                    <div className="border border-[var(--border)] bg-[var(--surface)]">
 
                         <div
                             className="
@@ -324,7 +410,7 @@ const Dashboard = () => {
 
                     {/* Recommended Next Step */}
 
-                    <div className="border border-[var(--border)]">
+                    <div className="border border-[var(--border)] bg-[var(--surface)]">
 
                         <div
                             className="

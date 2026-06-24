@@ -10,6 +10,11 @@ from rest_framework.permissions import (
     IsAuthenticated
 )
 
+from rest_framework.parsers import (
+    MultiPartParser,
+    FormParser,
+)
+
 from apps.profiles.model.profile import Profile
 
 from .serializers import (
@@ -20,6 +25,11 @@ from .serializers import (
 class ProfileAPIView(
     RetrieveUpdateAPIView
 ):
+    
+    parser_classes = [
+        MultiPartParser,
+        FormParser,
+    ]
 
     permission_classes = [
         IsAuthenticated
@@ -40,29 +50,30 @@ class ProfileAPIView(
         **kwargs
     ):
         cache_key = (
-            f"profile_{request.user.id}",
+            f"profile_{request.user.id}"
         )
-        
+
         cached_profile = cache.get(
             cache_key
         )
-        
+
         if cached_profile:
-            
             return Response(
-                cached_profile
-            )
-        
-        profile = self.get_serializer(
+            cached_profile
+        )
+
+        profile = self.get_object()
+
+        serializer = self.get_serializer(
             profile
         )
-        
+
         cache.set(
             cache_key,
             serializer.data,
             timeout=300,
         )
-        
+
         return Response(
             serializer.data
         )
@@ -78,9 +89,9 @@ class ProfileAPIView(
             *args,
             **kwargs
         )
-        
+
         cache.delete(
             f"profile_{request.user.id}"
         )
-        
-        return Response
+
+        return response
