@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "cloudinary",
     "cloudinary_storage",
+    "django_filters",
+    "drf_spectacular",
 
     "apps.accounts",
     "apps.profiles",
@@ -101,9 +103,32 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    
+    "DEFAULT_PAGINATION_CLASS": (
+
+        "config.pagination.StandardResultsPagination"
+
+    ),
+
+    "PAGE_SIZE": 10,
+    
+    "DEFAULT_FILTER_BACKENDS": [
+
+        "django_filters.rest_framework.DjangoFilterBackend",
+
+        "rest_framework.filters.SearchFilter",
+
+        "rest_framework.filters.OrderingFilter",
+
+    ],
+    
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    
+    "EXCEPTION_HANDLER": "config.exception_handler.custom_exception_handler"
 }
 
 GOOGLE_CLIENT_ID = config(
@@ -144,3 +169,43 @@ cloudinary.config(
         "CLOUDINARY_API_SECRET"
     ),
 )
+
+SPECTACULAR_SETTINGS = {
+
+    "TITLE": "AI Career Copilot API",
+
+    "DESCRIPTION": """
+Production-ready REST API for AI Career Copilot.
+
+Features
+
+- Authentication
+- User Profile
+- Resume Builder
+- AI Resume Generator
+
+""",
+
+    "VERSION": "1.0.0",
+
+    "SERVE_INCLUDE_SCHEMA": False,
+
+    "COMPONENT_SPLIT_REQUEST": True,
+
+    "SCHEMA_PATH_PREFIX": "/api/v1",
+
+    "CONTACT": {
+
+        "name": "Himanshu Kumar",
+
+        "email": "rajh5343@example.com",
+
+    },
+
+    "LICENSE": {
+
+        "name": "MIT",
+
+    },
+
+}

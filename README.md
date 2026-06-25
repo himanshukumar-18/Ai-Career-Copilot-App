@@ -99,6 +99,27 @@ Reusable Components
 
 ---
 
+---
+# Resume-builder
+Database Structure --
+        User
+        │
+        └── Resume
+            │
+            ├── ResumeProfile 
+            ├── Education 
+            ├── Experience
+            ├── Skill 
+            ├── Project 
+            ├── Certification 
+            ├── Language 
+            ├── Achievement 
+            └── Reference 
+            |__ Social
+            |__ custom
+* user create a modern cv for job
+---
+
 # 🛠 Tech Stack
 
 ## Frontend
@@ -316,6 +337,12 @@ PATCH /api/v1/profile/me/
 
 ---
 
+---
+## Resume-builder
+
+
+---
+
 # 📸 Screenshots
 [docs/README_IMAGES]
 
@@ -352,10 +379,8 @@ PATCH /api/v1/profile/me/
 * AI Resume Analyzer
 * AI Career Roadmap
 * Learning Path Generator
-* Job Recommendation
 * Interview Preparation
 * Mock Interviews
-* Portfolio Generator
 * Analytics Dashboard
 * Admin Dashboard
 

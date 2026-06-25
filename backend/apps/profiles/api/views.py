@@ -1,6 +1,4 @@
 from django.core.cache import cache
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.generics import (
     RetrieveUpdateAPIView
 )
@@ -20,9 +18,11 @@ from apps.profiles.model.profile import Profile
 from .serializers import (
     ProfileSerializer
 )
+from config.responses import ApiResponse, ApiResponseMixin
 
 
 class ProfileAPIView(
+    ApiResponseMixin,
     RetrieveUpdateAPIView
 ):
     
@@ -58,9 +58,11 @@ class ProfileAPIView(
         )
 
         if cached_profile:
-            return Response(
-            cached_profile
-        )
+            return ApiResponse.success(
+                request=request,
+                data=cached_profile,
+                message="Profile fetched successfully.",
+            )
 
         profile = self.get_object()
 
@@ -74,8 +76,10 @@ class ProfileAPIView(
             timeout=300,
         )
 
-        return Response(
-            serializer.data
+        return ApiResponse.success(
+            request=request,
+            data=serializer.data,
+            message="Profile fetched successfully.",
         )
     
     def update(
