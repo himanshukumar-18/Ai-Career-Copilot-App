@@ -98,7 +98,7 @@ const Dashboard = () => {
                                 ? user.first_name
                                 : user?.email?.split("@")[0]
                         }
-                        👋
+                        {" "} 👋
                     </h1>
 
                     <p className="mt-3 text-[var(--text-muted)] max-w-2xl">

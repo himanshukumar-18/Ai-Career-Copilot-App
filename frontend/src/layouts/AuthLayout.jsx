@@ -113,11 +113,23 @@ const AuthLayout = () => {
 
                     {/* Footer */}
 
-                    <div className="border-t border-[var(--border)] p-6">
+                    <div className="border-t border-[var(--border)] p-4">
 
-                        <p className="font-mono text-xs tracking-[0.2em] text-[var(--text-muted)] uppercase text-center">
-                            Built with ❤️ by Himanshu Kumar • AI Career Copilot
-                        </p>
+                        <div
+                            className="
+        text-center
+        text-[10px]
+        uppercase
+        tracking-[0.2em]
+        text-[var(--text-muted)]
+    "
+                        >
+                            <p>AI Career Copilot v1.0</p>
+
+                            <p className="mt-2">
+                                Powered by React + Django
+                            </p>
+                        </div>
 
                     </div>
 
