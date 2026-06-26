@@ -1,11 +1,15 @@
 import api from "../../api/axios";
 
+const unwrapApiResponse = (response) => (
+    response.data?.data ?? response.data
+);
+
 export const getProfile = async () => {
     const response = await api.get(
         "/profile/me/"
     );
 
-    return response.data;
+    return unwrapApiResponse(response);
 };
 
 export const updateProfile = async (
@@ -17,5 +21,5 @@ export const updateProfile = async (
         profileData
     );
 
-    return response.data;
+    return unwrapApiResponse(response);
 };

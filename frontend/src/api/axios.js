@@ -62,7 +62,11 @@ api.interceptors.response.use(
                     );
 
                 const newAccessToken =
-                    response.data.access;
+                    response.data?.data?.access;
+
+                if (!newAccessToken) {
+                    return Promise.reject(error);
+                }
 
                 localStorage.setItem(
                     "accessToken",

@@ -16,6 +16,9 @@ import VerifyOTP from "@/pages/auth/VerifyOTP";
 import Dashboard from "../pages/student/Dashboard";
 import Profile from "../pages/student/Profile";
 
+//page not found
+import NotFound from "@/pages/NotFound";
+
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -80,11 +83,7 @@ const AppRoutes = () => {
 
                 <Route
                     path="*"
-                    element={
-                        <div className="min-h-screen flex items-center justify-center">
-                            Page Not Found
-                        </div>
-                    }
+                    element={<NotFound />}
                 />
 
             </Routes>

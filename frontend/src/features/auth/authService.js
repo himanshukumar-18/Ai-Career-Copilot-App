@@ -1,12 +1,16 @@
 import api from "../../api/axios.js";
 
+const unwrapApiResponse = (response) => (
+  response.data?.data ?? response.data
+);
+
 export const registerUser = async (userData) => {
   const response = await api.post(
     "/auth/register/",
     userData
   );
 
-  return response.data;
+  return unwrapApiResponse(response);
 };
 
 export const verifyOTP = async (data) => {
@@ -16,7 +20,7 @@ export const verifyOTP = async (data) => {
     data
   );
 
-  return response.data;
+  return unwrapApiResponse(response);
 };
 
 export const loginUser = async (credentials) => {
@@ -24,7 +28,7 @@ export const loginUser = async (credentials) => {
     "/auth/login/",
     credentials
   );
-  return response.data;
+  return unwrapApiResponse(response);
 };
 
 export const getMe = async () => {
@@ -34,7 +38,7 @@ export const getMe = async () => {
       "/auth/me/"
     );
 
-  return response.data;
+  return unwrapApiResponse(response);
 };
 
 export const googleLogin =
@@ -48,5 +52,5 @@ export const googleLogin =
         }
       );
 
-    return response.data;
+    return unwrapApiResponse(response);
   };
