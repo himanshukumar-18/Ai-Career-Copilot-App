@@ -11,7 +11,6 @@ const ResumeEmptyState = ({ onCreateResume }) => {
             transition={{ duration: 0.35 }}
             className="
         flex
-        min-h-[420px]
         items-center
         justify-center
       "
@@ -19,12 +18,10 @@ const ResumeEmptyState = ({ onCreateResume }) => {
             <div
                 className="
           w-full
-          max-w-2xl
-          rounded-2xl
           border
           border-zinc-800
-          bg-zinc-950
-          p-10
+          bg-[var(--surface)]
+          p-20
           text-center
         "
             >
@@ -37,7 +34,6 @@ const ResumeEmptyState = ({ onCreateResume }) => {
             w-20
             items-center
             justify-center
-            rounded-2xl
             border
             border-zinc-800
             bg-zinc-900
@@ -50,7 +46,7 @@ const ResumeEmptyState = ({ onCreateResume }) => {
                 </div>
 
                 {/* Badge */}
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900 px-4 py-2">
+                <div className="mt-6 inline-flex items-center gap-2  border border-zinc-800 bg-zinc-900 px-4 py-2">
                     <Sparkles
                         size={16}
                         className="text-red-500"

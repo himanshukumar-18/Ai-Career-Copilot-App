@@ -23,10 +23,9 @@ const ResumeCard = ({
             transition={{ duration: 0.2 }}
             className="
         group
-        rounded-2xl
         border
         border-zinc-800
-        bg-zinc-950
+        bg-[var(--surface)]
         p-6
         transition-all
         duration-300
@@ -44,7 +43,6 @@ const ResumeCard = ({
                 w-11
                 items-center
                 justify-center
-                rounded-xl
                 border
                 border-zinc-800
                 bg-zinc-900

@@ -37,7 +37,7 @@ const ResumeBadge = ({
     return (
         <span
             className={clsx(
-                "inline-flex items-center justify-center rounded-full border font-medium tracking-wide transition-colors",
+                "inline-flex items-center justify-center border font-medium tracking-wide transition-colors",
 
                 variants[variant],
 

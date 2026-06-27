@@ -17,7 +17,7 @@ const ResumeHeader = ({
             transition={{ duration: 0.35 }}
             className="mb-8"
         >
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950/70 backdrop-blur-sm p-6">
+            <div className="border border-zinc-800 bg-[var(--surface)] backdrop-blur-sm p-6">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     {/* Left */}
                     <div>
@@ -34,12 +34,12 @@ const ResumeHeader = ({
                             one place.
                         </p>
 
-                        <div className="mt-5 inline-flex items-center rounded-full border border-zinc-800 bg-zinc-900 px-4 py-2">
+                        <div className="mt-5 inline-flex items-center  border border-zinc-800 bg-zinc-900 px-4 py-2">
                             <span className="text-xs font-medium uppercase tracking-widest text-zinc-400">
                                 Total Resumes
                             </span>
 
-                            <span className="ml-3 rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
+                            <span className="ml-3 bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
                                 {totalResumes}
                             </span>
                         </div>

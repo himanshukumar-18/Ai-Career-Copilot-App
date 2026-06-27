@@ -1,11 +1,11 @@
 import {
     Copy,
     Edit3,
-    MoreHorizontal,
     Star,
     Trash2,
     Upload,
     Download,
+    PencilLine
 } from "lucide-react";
 
 import  Button  from "../../ui/Button";
@@ -37,7 +37,6 @@ const ResumeActionMenu = ({
                     className="
             h-9
             w-9
-            rounded-lg
             border
             border-zinc-800
             bg-zinc-950
@@ -45,7 +44,7 @@ const ResumeActionMenu = ({
             hover:border-zinc-700
           "
                 >
-                    <MoreHorizontal size={18} />
+                    <span className="text-xl">✍️</span>
                 </Button>
             </DropdownMenuTrigger>
 
@@ -53,7 +52,6 @@ const ResumeActionMenu = ({
                 align="end"
                 className="
           w-56
-          rounded-xl
           border
           border-zinc-800
           bg-zinc-950

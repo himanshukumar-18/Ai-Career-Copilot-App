@@ -20,23 +20,18 @@ import {
     selectResumeError,
 } from "../../../features/resume/resumeSelectors";
 
-const CreateResumeModal = ({
-    open,
-    onOpenChange,
-}) => {
-
+const CreateResumeModal = ({ open, onOpenChange }) => {
     const dispatch = useDispatch();
     const loading = useSelector(selectResumeLoading);
     const error = useSelector(selectResumeError);
 
     const {
         register,
-        handleSubmit,
         reset,
+        handleSubmit,
         formState: { errors },
     } = useForm({
         resolver: zodResolver(createResumeSchema),
-
         defaultValues: {
             title: "",
             template: "Modern",
@@ -48,148 +43,98 @@ const CreateResumeModal = ({
 
         if (createResume.fulfilled.match(result)) {
             toast.success(
-                result.payload?.message ??
-                "Resume created successfully."
+                result.payload?.message ?? "Resume created successfully."
             );
-
             reset();
-
             onOpenChange(false);
-
             return;
         }
 
         toast.error(
-            result.payload?.message ??
-            "Failed to create resume."
+            result.payload?.message ?? "Failed to create resume."
         );
     };
 
-
     const handleClose = () => {
         if (loading) return;
-
         reset();
-
         onOpenChange(false);
     };
 
-    if (loading) return;
-
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6 p-6"
+        <Dialog
+            open={open}
+            onOpenChange={(value) => {
+                if (!loading) onOpenChange(value);
+            }}
         >
-            <Dialog
-                open={open}
-                onOpenChange={(value) => {
-                    if (!loading) {
-                        onOpenChange(value);
-                    }
-                }}
-            >
-                <DialogContent
-                    className="
-          w-[95vw]
-          max-w-xl
-          rounded-2xl
-          border
-          border-zinc-800
-          bg-zinc-950
-          p-0
-          text-white
-          shadow-none
-        "
-                >
-                    <motion.div
-                        initial={{
-                            opacity: 0,
-                            scale: 0.95,
-                            y: 10,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            scale: 1,
-                            y: 0,
-                        }}
-                        transition={{
-                            duration: 0.25,
-                        }}
-                    >
-                        {/* Header */}
-
-                        <DialogHeader
-                            className="
-              border-b
-              border-zinc-800
-              p-6
-            "
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div
-                                        className="
-                    flex
-                    h-12
-                    w-12
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
+            <DialogContent
+                className="
+                    w-[95vw]
+                    max-w-xl
                     border-zinc-800
-                    bg-zinc-900
-                  "
-                                    >
-                                        <FilePlus2
-                                            className="text-red-500"
-                                            size={22}
-                                        />
-                                    </div>
+                    bg-zinc-950
+                    p-0
+                    text-white
+                    shadow-none
+                "
+            >
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                >
+                    {/* ✅ form is now INSIDE DialogContent, wrapping header + body + footer */}
+                    <form onSubmit={handleSubmit(onSubmit)}>
 
-                                    <div>
-                                        <DialogTitle className="text-2xl font-bold">
-                                            Create Resume
-                                        </DialogTitle>
+                        {/* Header */}
+                        <DialogHeader className="border-b border-zinc-800 p-6">
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className="
+                                        flex h-12 w-12 items-center justify-center
+                                        border border-zinc-800 bg-zinc-900
+                                    "
+                                >
+                                    <FilePlus2 className="text-red-500" size={22} />
+                                </div>
 
-                                        <DialogDescription className="mt-1 text-zinc-400">
-                                            Create a new professional
-                                            ATS-friendly resume.
-                                        </DialogDescription>
-                                    </div>
+                                <div>
+                                    <DialogTitle className="text-2xl font-bold">
+                                        Create Resume
+                                    </DialogTitle>
+                                    <DialogDescription className="mt-1 text-zinc-400">
+                                        Create a new professional ATS-friendly resume.
+                                    </DialogDescription>
                                 </div>
                             </div>
                         </DialogHeader>
 
                         {/* Body */}
-
                         <div className="space-y-6 p-6">
-                            {/* Resume Title */}
 
+                            {/* Error banner */}
+                            {error && (
+                                <div className="border border-red-900 bg-red-950/30 px-4 py-3">
+                                    <p className="text-sm text-red-400">{error}</p>
+                                </div>
+                            )}
+
+                            {/* Resume Title */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-zinc-300">
                                     Resume Title
                                 </label>
-
                                 <input
                                     {...register("title")}
                                     disabled={loading}
                                     placeholder="e.g. Full Stack Developer Resume"
                                     className="
-      w-full
-      rounded-xl
-      border
-      border-zinc-800
-      bg-zinc-900
-      px-4
-      py-3
-      outline-none
-      transition
-      placeholder:text-zinc-600
-      focus:border-red-500
-  "
+                                        w-full mt-1 border border-zinc-800 bg-zinc-900
+                                        px-4 py-3 outline-none transition
+                                        placeholder:text-zinc-600 focus:border-red-500
+                                    "
                                 />
-
                                 {errors.title && (
                                     <p className="mt-2 text-sm text-red-500">
                                         {errors.title.message}
@@ -198,39 +143,23 @@ const CreateResumeModal = ({
                             </div>
 
                             {/* Template */}
-
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-zinc-300">
                                     Resume Template
                                 </label>
-
                                 <select
                                     {...register("template")}
                                     disabled={loading}
                                     className="
-      w-full
-      rounded-xl
-      border
-      border-zinc-800
-      bg-zinc-900
-      px-4
-      py-3
-      outline-none
-      transition
-      focus:border-red-500
-  "
+                                        w-full mt-1 border border-zinc-800 bg-zinc-900
+                                        px-4 py-3 outline-none transition focus:border-red-500
+                                    "
                                 >
-                                    <option value="Modern">Modern</option>
-
-                                    <option value="Professional">
-                                        Professional
-                                    </option>
-
-                                    <option value="Minimal">
-                                        Minimal
-                                    </option>
+                                    <option value="classic">Classic</option>
+                                    <option value="modern">Modern</option>
+                                    <option value="minimal">Minimal</option>
+                                    <option value="developer">Developer</option>
                                 </select>
-
                                 {errors.template && (
                                     <p className="mt-2 text-sm text-red-500">
                                         {errors.template.message}
@@ -240,24 +169,17 @@ const CreateResumeModal = ({
                         </div>
 
                         {/* Footer */}
-
                         <div
                             className="
-              flex
-              flex-col-reverse
-              gap-3
-              border-t
-              border-zinc-800
-              p-6
-
-              sm:flex-row
-              sm:justify-end
-            "
+                                flex flex-col-reverse gap-3 border-t border-zinc-800 p-6
+                                sm:flex-row sm:justify-end
+                            "
                         >
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={handleClose}
+                                disabled={loading}
                             >
                                 Cancel
                             </Button>
@@ -269,50 +191,22 @@ const CreateResumeModal = ({
                             >
                                 {loading ? (
                                     <>
-                                        <Loader2
-                                            size={18}
-                                            className="mr-2 animate-spin"
-                                        />
-
+                                        <Loader2 size={18} className="mr-2 animate-spin" />
                                         Creating...
                                     </>
                                 ) : (
                                     <>
-                                        <FilePlus2
-                                            size={18}
-                                            className="mr-2"
-                                        />
-
+                                        <FilePlus2 size={18} className="mr-2" />
                                         Create Resume
                                     </>
                                 )}
                             </Button>
                         </div>
-                    </motion.div>
-                </DialogContent>
-            </Dialog>
 
-            {
-                error && (
-                    <div
-                        className="
-        rounded-xl
-        border
-        border-red-900
-        bg-red-950/30
-        px-4
-        py-3
-      "
-                    >
-                        <p className="text-sm text-red-400">
-                            {error}
-                        </p>
-                    </div>
-                )
-            }
-        </form>
-
-
+                    </form>
+                </motion.div>
+            </DialogContent>
+        </Dialog>
     );
 };
 
