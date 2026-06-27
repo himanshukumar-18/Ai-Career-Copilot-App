@@ -32,6 +32,7 @@ urlpatterns = [
         "api/v1/",
         include("apps.resumes.urls"),
     ),
+    
     # OpenAPI Schema
     path(
         "api/schema/",

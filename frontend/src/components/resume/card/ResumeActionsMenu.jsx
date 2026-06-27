@@ -8,7 +8,7 @@ import {
     Download,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
+import  Button  from "../../ui/Button";
 
 import {
     DropdownMenu,
@@ -16,7 +16,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../../ui/dropdown-menu";
 
 const ResumeActionMenu = ({
     resume,

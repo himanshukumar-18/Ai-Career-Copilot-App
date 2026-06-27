@@ -1,6 +1,6 @@
 import axiosInstance from "./axios";
 
-const BASE_URL = "/api/v1/resumes";
+const BASE_URL = "/resumes";
 
 export const resumeApi = {
     getResumes: (params = {}) =>

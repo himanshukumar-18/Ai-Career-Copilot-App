@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
 
-import ResumeActionMenu from "./ResumeActionMenu";
+import ResumeActionMenu from "./ResumeActionsMenu";
 import ResumeBadge from "./ResumeBadge";
 import ResumeProgress from "./ResumeProgress";
 import ResumeStatus from "./ResumeStatus";

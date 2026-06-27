@@ -1,5 +1,3 @@
-
-
 const Button = ({
   children,
   variant = "primary",

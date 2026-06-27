@@ -15,6 +15,7 @@ import VerifyOTP from "@/pages/auth/VerifyOTP";
 // student pages
 import Dashboard from "../pages/student/Dashboard";
 import Profile from "../pages/student/Profile";
+import Resume from "../pages/student/Resume";
 
 //page not found
 import NotFound from "@/pages/NotFound";
@@ -64,6 +65,11 @@ const AppRoutes = () => {
                     <Route
                         path="/profile"
                         element={<Profile />}
+                    />
+
+                    <Route
+                        path="/resume"
+                        element={<Resume />}
                     />
                 </Route>
 

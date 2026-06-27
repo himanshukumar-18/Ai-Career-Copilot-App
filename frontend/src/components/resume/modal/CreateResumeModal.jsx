@@ -5,20 +5,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import { createResume } from "@/features/resume/resumeThunk";
-import { createResumeSchema } from "@/lib/validations/resumeSchema";
+import { createResume } from "../../../features/resume/resumeThunk";
+import { createResumeSchema } from "../../../lib/validations/resumeSchema";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
     DialogDescription,
-} from "@/components/ui/dialog";
-import Button from "@/components/ui/Button";
+} from "../../ui/dialog";
+import Button from "../../ui/Button";
 import {
     selectResumeLoading,
     selectResumeError,
-} from "@/features/resume/resumeSelectors";
+} from "../../../features/resume/resumeSelectors";
 
 const CreateResumeModal = ({
     open,

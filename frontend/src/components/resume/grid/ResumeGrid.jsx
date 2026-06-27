@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 
-import ResumeCard from "./ResumeCard";
+import ResumeCard from "../card/ResumeCard";
 
 const ResumeGrid = ({
     resumes = [],

@@ -23,7 +23,7 @@ const Dashboard = () => {
             title: "Resume Builder",
             description:
                 "Create an ATS-friendly professional resume.",
-            link: "/resume-builder"
+            link: "/resume"
         },
         {
             title: "Skills",

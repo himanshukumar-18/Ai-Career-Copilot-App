@@ -1,3 +1,4 @@
+from django.db import DatabaseError
 from rest_framework import status
 from rest_framework.exceptions import (
     APIException,
@@ -13,6 +14,7 @@ from rest_framework.exceptions import (
 from rest_framework.views import exception_handler
 
 from config.responses import ApiResponse
+from config.logging import project_logger
 
 
 def _detail_message(data, default):
@@ -49,6 +51,21 @@ def custom_exception_handler(
     )
 
     if response is None:
+        if isinstance(exc, DatabaseError):
+            project_logger.exception(
+                "Database error at %s",
+                getattr(request, "path", None),
+            )
+
+            return ApiResponse.server_error(
+                request=request,
+                message="Database error.",
+            )
+
+        project_logger.exception(
+            "Unexpected exception at %s",
+            getattr(request, "path", None),
+        )
 
         return ApiResponse.server_error(
             request=request,
@@ -58,6 +75,11 @@ def custom_exception_handler(
     errors = response.data
 
     if isinstance(exc, ValidationError):
+        project_logger.warning(
+            "Validation error at %s: %s",
+            getattr(request, "path", None),
+            errors,
+        )
 
         return ApiResponse.validation_error(
             request=request,
@@ -94,6 +116,11 @@ def custom_exception_handler(
         )
 
     if isinstance(exc, PermissionDenied):
+        project_logger.warning(
+            "Permission error at %s for user=%s",
+            getattr(request, "path", None),
+            getattr(getattr(request, "user", None), "id", None),
+        )
 
         return ApiResponse.forbidden(
             request=request,

@@ -1,6 +1,7 @@
 from pathlib import Path
 from decouple import config
 import cloudinary
+from config.logging import LOGGING as DJANGO_LOGGING
 
 
 
@@ -209,3 +210,5 @@ Features
     },
 
 }
+
+LOGGING = DJANGO_LOGGING
