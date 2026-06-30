@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import profileReducer from "../features/profile/profileSlice"
 import resumeReducer from "../features/resume/resumeSlice"
+import certificationsReducer from "../features/certifications/certificationSlice"
 
 const store = configureStore({
     reducer: {
@@ -11,6 +12,8 @@ const store = configureStore({
             profileReducer,
         resume:
             resumeReducer,
+        certifications:
+            certificationsReducer
     }
 })
 

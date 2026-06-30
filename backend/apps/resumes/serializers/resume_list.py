@@ -12,21 +12,13 @@ class ResumeListSerializer(
         model = Resume
 
         fields = [
-
             "id",
-
             "title",
-
             "template",
-
             "theme_color",
-
             "is_default",
-
             "is_public",
-
             "updated_at",
-
         ]
 
         read_only_fields = fields

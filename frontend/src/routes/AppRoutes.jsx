@@ -16,6 +16,7 @@ import VerifyOTP from "@/pages/auth/VerifyOTP";
 import Dashboard from "../pages/student/Dashboard";
 import Profile from "../pages/student/Profile";
 import Resume from "../pages/student/Resume";
+import ResumeEditor from "../pages/student/ResumeEditor";
 
 //page not found
 import NotFound from "@/pages/NotFound";
@@ -70,6 +71,11 @@ const AppRoutes = () => {
                     <Route
                         path="/resume"
                         element={<Resume />}
+                    />
+
+                    <Route
+                        path="/resume/:resumeId"
+                        element={<ResumeEditor />}
                     />
                 </Route>
 

@@ -9,6 +9,40 @@ class ResumeProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="profile",
     )
+    
+    first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )      
+
+    last_name = models.CharField(
+        max_length=100,
+        blank=True,
+            default="",
+    )
+
+    email = models.EmailField(
+        blank=True,
+        default="",
+    )
+
+    postal_code = models.CharField(
+        max_length=20,
+        blank=True,
+            default="",
+    )
+
+    date_of_birth = models.DateField(
+        blank=True,
+        null=True,
+    )
+
+    profile_photo = models.ImageField(
+        upload_to="resume/profile/",
+        blank=True,
+        null=True,
+    )
 
     headline = models.CharField(
         max_length=255,
