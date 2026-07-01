@@ -28,6 +28,22 @@ const Button = ({
       hover:bg-transparent
       hover:text-[var(--accent)]
     `,
+
+    destructive: `
+      bg-transparent
+      text-red-500
+      border-red-500
+      hover:bg-red-500/10
+      hover:text-red-500
+    `,
+
+    outline: `
+      bg-transparent
+      text-[var(--text-primary)]
+      border border-[var(--border)]
+      hover:border-[var(--text-primary)]
+      hover:bg-white/5
+    `,
   };
 
   return (

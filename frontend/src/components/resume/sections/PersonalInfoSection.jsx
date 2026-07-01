@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "../../ui/Button"
-import { Input } from "../../ui/Input"
+import Button from "../../ui/Button";
+import Input from "../../ui/Input";
+import Label from "../../ui/Label";
 import { personalInfoSchema } from "../../../lib/validations/personalInfoSchema";
 
 import {
