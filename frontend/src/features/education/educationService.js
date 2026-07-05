@@ -15,7 +15,7 @@ import api from "@/api/axios";
  * @property {string} [description]
  */
 
-const unwrap = (response) => response.data?.data ?? response.data;
+const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
 
 /**
  * Normalizes an axios error into a plain object the thunk's rejectWithValue

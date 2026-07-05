@@ -6,7 +6,7 @@ import api from "../../api/axios";
  * @param {import("axios").AxiosResponse} response
  * @returns {*}
  */
-const unwrap = (response) => response.data?.data ?? response.data;
+const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
 
 /**
  * Fetch all experience entries for the current user.

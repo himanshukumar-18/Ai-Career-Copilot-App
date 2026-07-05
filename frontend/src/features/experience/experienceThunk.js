@@ -4,7 +4,7 @@ import {
     createExperience,
     updateExperience,
     deleteExperience,
-} from "@/api/services/experienceApi";
+} from "../experience/experienceService.js";
 
 /**
  * Pulls a readable error message out of a DRF-style error response.

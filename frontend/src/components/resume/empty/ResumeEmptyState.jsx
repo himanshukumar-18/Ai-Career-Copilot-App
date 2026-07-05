@@ -1,7 +1,7 @@
 import { FilePlus2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
-import Button from "@/components/ui/Button";
+import Button from "../../ui/Button";
 
 const ResumeEmptyState = ({ onCreateResume }) => {
     return (

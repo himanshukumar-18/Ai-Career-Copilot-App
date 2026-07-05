@@ -1,6 +1,6 @@
 import api from "@/api/axios";
 
-const unwrap = (response) => response.data?.data ?? response.data;
+const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
 
 const normalizeApiError = (error) => {
     if (error.response?.data) {

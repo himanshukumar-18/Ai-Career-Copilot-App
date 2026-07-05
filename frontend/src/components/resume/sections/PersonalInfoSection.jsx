@@ -3,21 +3,21 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useResumeEditorSection } from "../editor/ResumeEditorContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    Camera,
-    Mail,
-    Phone,
-    MapPin,
-    Globe,
-    Github,
-    Linkedin,
+    //Camera,
+    //Mail,
+    //Phone,
+    //MapPin,
+    //Globe,
+    //Github,
+    //Linkedin,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
-import Label from "../../ui/Label";
 import { personalInfoSchema } from "../../../lib/validations/personalInfoSchema";
 
 import {
@@ -90,6 +90,23 @@ const PersonalInfoSection = () => {
         defaultValues: DEFAULT_VALUES,
     });
 
+    const { registerSaveAction } = useResumeEditorSection();
+
+    const onSubmit = async (data) => {
+        try {
+            await dispatch(
+                updateResumeProfileThunk({ resumeId, profileData: data })
+            ).unwrap();
+        } catch {
+            // Error toast is handled by the effect below once saveFailed flips.
+        }
+    };
+
+    useEffect(() => {
+        const unregister = registerSaveAction("personal", handleSubmit(onSubmit));
+        return unregister;
+    }, [handleSubmit, onSubmit, registerSaveAction]);
+
     // Fetch profile on mount / resumeId change.
     useEffect(() => {
         if (resumeId) {
@@ -116,20 +133,9 @@ const PersonalInfoSection = () => {
         }
     }, [saveSucceeded, saveFailed, errorMessage, dispatch]);
 
-    const onSubmit = async (data) => {
-        try {
-            await dispatch(
-                updateResumeProfileThunk({ resumeId, profileData: data })
-            ).unwrap();
-            // Success toast is handled by the effect above once saveSucceeded flips.
-        } catch {
-            // Error toast is handled by the effect above once saveFailed flips.
-        }
-    };
-
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-24 text-zinc-400">
+            <div className="flex items-center justify-center py-24 text-sm text-zinc-500">
                 Loading profile...
             </div>
         );
@@ -137,207 +143,238 @@ const PersonalInfoSection = () => {
 
     return (
         <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="w-full"
         >
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
+                <div className="border border-zinc-800 bg-zinc-950">
                     {/* Header */}
-                    <div className="border-b border-zinc-800 px-8 py-6">
-                        <h2 className="text-2xl font-bold text-white">
-                            Personal Information
-                        </h2>
-                        <p className="mt-2 text-sm text-zinc-400">
-                            Complete your personal profile used across your resume.
-                        </p>
+                    <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4 sm:px-6">
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">
+                                Personal
+                            </h2>
+                            <p className="mt-1 text-xs text-zinc-500">
+                                Your basic details, shown at the top of your resume.
+                            </p>
+                        </div>
+
+                        <motion.div whileTap={{ scale: 0.97 }}>
+                            <Button
+                                type="submit"
+                                disabled={isSaving || !isDirty}
+                                className="h-9 px-4 text-xs"
+                            >
+                                {isSaving ? "Saving..." : "Save"}
+                            </Button>
+                        </motion.div>
                     </div>
 
                     {/* Body */}
-                    <div className="space-y-10 p-8">
-                        {/* Profile Photo */}
-                        <div className="flex flex-col items-center">
+                    <div className="space-y-5 p-5 sm:p-6">
+                        {/* Profile photo */}
+                        <div className="flex flex-col items-center gap-3 border border-zinc-800 bg-zinc-900/40 p-5">
                             <motion.div
                                 whileHover={{ scale: 1.05 }}
-                                className="flex h-36 w-36 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-zinc-700 bg-zinc-900 transition hover:border-red-500"
+                                className="flex h-24 w-24 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-zinc-700 bg-zinc-900 transition hover:border-red-500"
                             >
-                                <Camera className="text-zinc-500" size={34} />
+                                {/* <Camera className="text-zinc-500" size={28} /> */}
                             </motion.div>
-                            <Button type="button" variant="outline" className="mt-5">
-                                Upload Photo
+                            <Button type="button" variant="outline" className="h-9 px-4 text-xs">
+                                Upload photo
                             </Button>
                         </div>
 
-                        {/* Name */}
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <Field label="First Name" error={errors.first_name}>
-                                <Input
-                                    id="first_name"
-                                    placeholder="John"
-                                    {...register("first_name")}
-                                />
-                            </Field>
+                        {/* Name + headline */}
+                        <div className="border border-zinc-800 bg-zinc-900/40 p-5">
+                            <p className="mb-4 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Basic info
+                            </p>
 
-                            <Field label="Last Name" error={errors.last_name}>
-                                <Input
-                                    id="last_name"
-                                    placeholder="Doe"
-                                    {...register("last_name")}
-                                />
-                            </Field>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <Field label="First name" htmlFor="first_name" error={errors.first_name}>
+                                    <Input
+                                        id="first_name"
+                                        placeholder="John"
+                                        {...register("first_name")}
+                                    />
+                                </Field>
+
+                                <Field label="Last name" htmlFor="last_name" error={errors.last_name}>
+                                    <Input
+                                        id="last_name"
+                                        placeholder="Doe"
+                                        {...register("last_name")}
+                                    />
+                                </Field>
+                            </div>
+
+                            <div className="mt-4">
+                                <Field label="Professional headline" htmlFor="headline" error={errors.headline}>
+                                    <Input
+                                        id="headline"
+                                        placeholder="Full Stack Developer"
+                                        {...register("headline")}
+                                    />
+                                </Field>
+                            </div>
                         </div>
 
-                        <Field label="Professional Headline" error={errors.headline}>
-                            <Input
-                                id="headline"
-                                placeholder="Full Stack Developer"
-                                {...register("headline")}
-                            />
-                        </Field>
-
                         {/* Contact */}
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <Field label="Email" error={errors.email}>
-                                <div className="relative">
-                                    <Mail
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-zinc-500"
-                                    />
-                                    <Input
-                                        id="email"
-                                        className="pl-10"
-                                        placeholder="john@example.com"
-                                        {...register("email")}
-                                    />
-                                </div>
-                            </Field>
+                        <div className="border border-zinc-800 bg-zinc-900/40 p-5">
+                            <p className="mb-4 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Contact
+                            </p>
 
-                            <Field label="Phone" error={errors.phone}>
-                                <div className="relative">
-                                    <Phone
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-zinc-500"
-                                    />
-                                    <Input
-                                        id="phone"
-                                        className="pl-10"
-                                        placeholder="+91 9876543210"
-                                        {...register("phone")}
-                                    />
-                                </div>
-                            </Field>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <Field label="Email" htmlFor="email" error={errors.email}>
+                                    <div className="relative">
+                                        {/* <Mail
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                        /> */}
+                                        <Input
+                                            id="email"
+                                            className="pl-9"
+                                            placeholder="john@example.com"
+                                            {...register("email")}
+                                        />
+                                    </div>
+                                </Field>
+
+                                <Field label="Phone" htmlFor="phone" error={errors.phone}>
+                                    <div className="relative">
+                                        {/* <Phone
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                        /> */}
+                                        <Input
+                                            id="phone"
+                                            className="pl-9"
+                                            placeholder="+91 9876543210"
+                                            {...register("phone")}
+                                        />
+                                    </div>
+                                </Field>
+                            </div>
                         </div>
 
                         {/* Address */}
-                        <Field label="Address" error={errors.address}>
-                            <div className="relative">
-                                <MapPin
-                                    size={18}
-                                    className="absolute left-3 top-3.5 text-zinc-500"
-                                />
-                                <Input
-                                    id="address"
-                                    className="pl-10"
-                                    placeholder="Street Address"
-                                    {...register("address")}
-                                />
+                        <div className="border border-zinc-800 bg-zinc-900/40 p-5">
+                            <p className="mb-4 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Address
+                            </p>
+
+                            <Field label="Street address" htmlFor="address" error={errors.address}>
+                                <div className="relative">
+                                    {/* <MapPin
+                                        size={16}
+                                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                    /> */}
+                                    <Input
+                                        id="address"
+                                        className="pl-9"
+                                        placeholder="Street address"
+                                        {...register("address")}
+                                    />
+                                </div>
+                            </Field>
+
+                            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <Field label="City" htmlFor="city" error={errors.city}>
+                                    <Input id="city" placeholder="Delhi" {...register("city")} />
+                                </Field>
+
+                                <Field label="State" htmlFor="state" error={errors.state}>
+                                    <Input id="state" placeholder="Delhi" {...register("state")} />
+                                </Field>
+
+                                <Field label="Postal code" htmlFor="postal_code" error={errors.postal_code}>
+                                    <Input
+                                        id="postal_code"
+                                        placeholder="110001"
+                                        {...register("postal_code")}
+                                    />
+                                </Field>
                             </div>
-                        </Field>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            <Field label="City" error={errors.city}>
-                                <Input id="city" placeholder="Delhi" {...register("city")} />
-                            </Field>
-
-                            <Field label="State" error={errors.state}>
-                                <Input id="state" placeholder="Delhi" {...register("state")} />
-                            </Field>
-
-                            <Field label="Postal Code" error={errors.postal_code}>
-                                <Input
-                                    id="postal_code"
-                                    placeholder="110001"
-                                    {...register("postal_code")}
-                                />
-                            </Field>
+                            <div className="mt-4">
+                                <Field label="Country" htmlFor="country" error={errors.country}>
+                                    <Input id="country" placeholder="India" {...register("country")} />
+                                </Field>
+                            </div>
                         </div>
 
-                        <Field label="Country" error={errors.country}>
-                            <Input id="country" placeholder="India" {...register("country")} />
-                        </Field>
+                        {/* Online presence */}
+                        <div className="border border-zinc-800 bg-zinc-900/40 p-5">
+                            <p className="mb-4 text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Online presence
+                            </p>
 
-                        {/* Online Presence */}
-                        <div className="space-y-6">
-                            <Field label="Website" error={errors.website}>
-                                <div className="relative">
-                                    <Globe
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-zinc-500"
-                                    />
-                                    <Input
-                                        id="website"
-                                        className="pl-10"
-                                        placeholder="Website"
-                                        {...register("website")}
-                                    />
-                                </div>
-                            </Field>
+                            <div className="space-y-4">
+                                <Field label="Website" htmlFor="website" error={errors.website}>
+                                    <div className="relative">
+                                        {/* <Globe
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                        /> */}
+                                        <Input
+                                            id="website"
+                                            className="pl-9"
+                                            placeholder="yourwebsite.com"
+                                            {...register("website")}
+                                        />
+                                    </div>
+                                </Field>
 
-                            <Field label="Portfolio" error={errors.portfolio}>
-                                <div className="relative">
-                                    <Globe
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-zinc-500"
-                                    />
-                                    <Input
-                                        id="portfolio"
-                                        className="pl-10"
-                                        placeholder="Portfolio"
-                                        {...register("portfolio")}
-                                    />
-                                </div>
-                            </Field>
+                                <Field label="Portfolio" htmlFor="portfolio" error={errors.portfolio}>
+                                    <div className="relative">
+                                        {/* <Globe
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                        /> */}
+                                        <Input
+                                            id="portfolio"
+                                            className="pl-9"
+                                            placeholder="yourportfolio.com"
+                                            {...register("portfolio")}
+                                        />
+                                    </div>
+                                </Field>
 
-                            <Field label="LinkedIn" error={errors.linkedin}>
-                                <div className="relative">
-                                    <Linkedin
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-blue-500"
-                                    />
-                                    <Input
-                                        id="linkedin"
-                                        className="pl-10"
-                                        placeholder="LinkedIn URL"
-                                        {...register("linkedin")}
-                                    />
-                                </div>
-                            </Field>
+                                <Field label="LinkedIn" htmlFor="linkedin" error={errors.linkedin}>
+                                    <div className="relative">
+                                        {/* <Linkedin
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500"
+                                        /> */}
+                                        <Input
+                                            id="linkedin"
+                                            className="pl-9"
+                                            placeholder="linkedin.com/in/you"
+                                            {...register("linkedin")}
+                                        />
+                                    </div>
+                                </Field>
 
-                            <Field label="GitHub" error={errors.github}>
-                                <div className="relative">
-                                    <Github
-                                        size={18}
-                                        className="absolute left-3 top-3.5 text-zinc-400"
-                                    />
-                                    <Input
-                                        id="github"
-                                        className="pl-10"
-                                        placeholder="GitHub URL"
-                                        {...register("github")}
-                                    />
-                                </div>
-                            </Field>
+                                <Field label="GitHub" htmlFor="github" error={errors.github}>
+                                    <div className="relative">
+                                        {/* <Github
+                                            size={16}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                                        /> */}
+                                        <Input
+                                            id="github"
+                                            className="pl-9"
+                                            placeholder="github.com/you"
+                                            {...register("github")}
+                                        />
+                                    </div>
+                                </Field>
+                            </div>
                         </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex justify-end border-t border-zinc-800 px-8 py-6">
-                        <motion.div whileTap={{ scale: 0.98 }}>
-                            <Button type="submit" disabled={isSaving || !isDirty}>
-                                {isSaving ? "Saving..." : "Save Changes"}
-                            </Button>
-                        </motion.div>
                     </div>
                 </div>
             </form>
@@ -346,17 +383,17 @@ const PersonalInfoSection = () => {
 };
 
 /** Small layout helper: pairs a label, its input, and a validation message. */
-const Field = ({ label, error, children }) => (
+const Field = ({ label, htmlFor, error, children }) => (
     <div>
         <label
-            htmlFor={children.props.id}
-            className="mb-1.5 block text-sm font-medium text-zinc-300"
+            htmlFor={htmlFor}
+            className="mb-1.5 block text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500"
         >
             {label}
         </label>
         {children}
         {error && (
-            <p className="mt-1 text-sm text-red-500">{error.message}</p>
+            <p className="mt-1 text-xs text-red-500">{error.message}</p>
         )}
     </div>
 );

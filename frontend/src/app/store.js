@@ -2,7 +2,10 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "../features/auth/authSlice";
 import profileReducer from "../features/profile/profileSlice";
 import resumeReducer from "../features/resume/resumeSlice";
-import certificationsReducer from "../features/certifications/certificationSlice";
+import resumeProfileReducer from "../features/resumeProfile/resumeProfileSlice";
+import resumeCertificationsReducer from "../features/certifications/certificationSlice";
+import educationReducer from "../features/education/educationSlice";
+import experienceReducer from "../features/experience/experienceSlice";
 import languageReducer from "../features/language/languageSlice";
 import projectsReducer from "../features/projects/projectSlice";
 import skillsReducer from "../features/skills/skillSlice";
@@ -14,7 +17,10 @@ const store = configureStore({
         auth: authReducer,
         profile: profileReducer,
         resume: resumeReducer,
-        certifications: certificationsReducer,
+        resumeProfile: resumeProfileReducer,
+        resumeCertifications: resumeCertificationsReducer,
+        education: educationReducer,
+        experience: experienceReducer,
         language: languageReducer,
         projects: projectsReducer,
         skills: skillsReducer,

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
 
@@ -16,20 +17,43 @@ const ResumeCard = ({
     onUnpublish,
     onSetDefault,
 }) => {
+    const navigate = useNavigate();
+
+    const handleOpenEditor = () => {
+        navigate(`/resume/${resume.id}/edit`);
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+            event.preventDefault();
+            handleOpenEditor();
+        }
+    };
+
     return (
         <motion.div
             layout
             whileHover={{ y: -4 }}
             transition={{ duration: 0.2 }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Open resume ${resume.title} editor`}
+            onClick={handleOpenEditor}
+            onKeyDown={handleKeyDown}
             className="
         group
         border
         border-zinc-800
-        bg-[var(--surface)]
+        bg-(--surface)
         p-6
         transition-all
         duration-300
-        hover:border-red-600/40
+        cursor-pointer
+        hover:border-red-500/60
+        hover:bg-zinc-900
+        focus:outline-none
+        focus:ring-2
+        focus:ring-red-500
       "
         >
             {/* Header */}

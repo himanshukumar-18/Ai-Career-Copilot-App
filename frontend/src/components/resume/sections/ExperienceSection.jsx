@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BriefcaseBusiness, Loader2 } from "lucide-react";
+import { BriefcaseBusiness, Loader2, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
 import Button from "../../ui/Button";
 import ExperienceCard from "../card/ExperienceCard";
 
+import { fetchExperiences } from "../../../features/experience/experienceThunk";
+import { clearExperienceError } from "../../../features/experience/experienceSlice";
 import {
-    fetchExperiences,
-    clearExperienceError,
     selectExperiences,
     selectExperienceStatus,
     selectExperienceError,
-} from "@/features/experience/experienceSlice";
+} from "../../../features/experience/experienceSelectors";
+
+let draftCounter = 0;
+/** Makes a unique id for a new draft card, even if two are added in the same millisecond. */
+const makeDraftId = () => {
+    draftCounter += 1;
+    return `draft-${Date.now()}-${draftCounter}`;
+};
 
 /**
  * Work experience section. Loads saved experiences from the backend
@@ -47,7 +54,7 @@ const ExperienceSection = () => {
         setDrafts((prev) => [
             ...prev,
             {
-                localId: `draft-${Date.now()}`,
+                localId: makeDraftId(),
                 company: "",
                 position: "",
                 employment_type: "",
@@ -71,35 +78,49 @@ const ExperienceSection = () => {
 
     return (
         <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="w-full"
         >
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
+            <div className="border border-zinc-800 bg-zinc-950">
                 {/* Header */}
-                <div className="border-b border-zinc-800 px-8 py-6">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
-                            <BriefcaseBusiness className="text-blue-500" size={24} />
-                        </div>
+                <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4 sm:px-6">
+                    <div className="flex items-center gap-3">
+                        <BriefcaseBusiness
+                            className="text-zinc-500"
+                            size={18}
+                            aria-hidden="true"
+                        />
                         <div>
-                            <h2 className="text-2xl font-bold text-white">
-                                Work Experience
+                            <h2 className="text-lg font-semibold text-white">
+                                Experience
                             </h2>
-                            <p className="mt-1 text-sm text-zinc-400">
-                                Showcase your professional work experience and career
-                                achievements.
+                            <p className="mt-1 text-xs text-zinc-500">
+                                Roles that shaped how you work.
                             </p>
                         </div>
                     </div>
+
+                    <motion.div whileTap={{ scale: 0.97 }}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleAddDraft}
+                            disabled={isLoading}
+                            className="h-9 px-4 text-xs uppercase tracking-[0.1em]"
+                        >
+                            <Plus size={14} />
+                            Add role
+                        </Button>
+                    </motion.div>
                 </div>
 
                 {/* Body */}
-                <div className="space-y-6 p-8">
+                <div className="space-y-5 p-5 sm:p-6">
                     {isLoading && (
-                        <div className="flex items-center justify-center py-16 text-zinc-500">
-                            <Loader2 size={24} className="mr-2 animate-spin" />
+                        <div className="flex items-center justify-center py-16 text-sm text-zinc-500">
+                            <Loader2 size={20} className="mr-2 animate-spin" />
                             Loading experiences...
                         </div>
                     )}
@@ -109,16 +130,17 @@ const ExperienceSection = () => {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="rounded-xl border border-dashed border-zinc-700 py-16 text-center"
+                                className="border border-dashed border-zinc-700 py-16 text-center"
                             >
                                 <BriefcaseBusiness
-                                    size={48}
-                                    className="mx-auto text-zinc-600"
+                                    size={40}
+                                    className="mx-auto text-zinc-700"
+                                    aria-hidden="true"
                                 />
-                                <h3 className="mt-5 text-xl font-semibold text-white">
-                                    No Experience Added
+                                <h3 className="mt-4 text-sm font-semibold text-zinc-300">
+                                    No experience added
                                 </h3>
-                                <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
+                                <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-zinc-500">
                                     Add your professional work experience to highlight your
                                     career journey.
                                 </p>
@@ -141,12 +163,6 @@ const ExperienceSection = () => {
                             </>
                         )}
                     </AnimatePresence>
-
-                    <motion.div whileTap={{ scale: 0.98 }}>
-                        <Button type="button" onClick={handleAddDraft}>
-                            Add Experience
-                        </Button>
-                    </motion.div>
                 </div>
             </div>
         </motion.section>

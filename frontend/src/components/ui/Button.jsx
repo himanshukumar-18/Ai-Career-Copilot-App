@@ -1,7 +1,7 @@
 const Button = ({
   children,
   variant = "primary",
-  className = "",
+  className = "cursor-pointer",
   disabled = false,
   ...props
 }) => {

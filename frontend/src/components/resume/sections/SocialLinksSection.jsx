@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Globe, Linkedin, Github, Link } from "lucide-react";
+// import { Globe, Linkedin, GitHub, Link } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useResumeEditorSection } from "../editor/ResumeEditorContext";
 
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
@@ -36,13 +37,20 @@ const SocialLinksSection = ({ resume }) => {
         defaultValues: DEFAULT_LINKS,
     });
 
-    useEffect(() => {
-        reset(toFormValues(resume ?? {}));
-    }, [resume, reset]);
+    const { registerSaveAction } = useResumeEditorSection();
 
     const onSubmit = () => {
         toast.success("Social links updated successfully.");
     };
+
+    useEffect(() => {
+        reset(toFormValues(resume ?? {}));
+    }, [resume, reset]);
+
+    useEffect(() => {
+        const unregister = registerSaveAction("social", handleSubmit(onSubmit));
+        return unregister;
+    }, [handleSubmit, onSubmit, registerSaveAction]);
 
     return (
         <motion.section
@@ -56,7 +64,7 @@ const SocialLinksSection = ({ resume }) => {
                     <div className="border-b border-zinc-800 px-8 py-6">
                         <div className="flex items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10">
-                                <Globe className="text-sky-400" size={24} />
+                                {/* <Globe className="text-sky-400" size={24} /> */}
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-white">Social Links</h2>
@@ -70,7 +78,7 @@ const SocialLinksSection = ({ resume }) => {
                     <div className="space-y-6 p-8">
                         <Field label="Website" error={errors.website}>
                             <div className="relative">
-                                <Link size={18} className="absolute left-3 top-3 text-zinc-500" />
+                                {/* <Link size={18} className="absolute left-3 top-3 text-zinc-500" /> */}
                                 <Input
                                     id="website"
                                     className="pl-10"
@@ -82,7 +90,7 @@ const SocialLinksSection = ({ resume }) => {
 
                         <Field label="Portfolio" error={errors.portfolio}>
                             <div className="relative">
-                                <Globe size={18} className="absolute left-3 top-3 text-zinc-500" />
+                                {/* <Globe size={18} className="absolute left-3 top-3 text-zinc-500" /> */}
                                 <Input
                                     id="portfolio"
                                     className="pl-10"
@@ -94,7 +102,7 @@ const SocialLinksSection = ({ resume }) => {
 
                         <Field label="LinkedIn" error={errors.linkedin}>
                             <div className="relative">
-                                <Linkedin size={18} className="absolute left-3 top-3 text-blue-500" />
+                                {/* <Linkedin size={18} className="absolute left-3 top-3 text-blue-500" /> */}
                                 <Input
                                     id="linkedin"
                                     className="pl-10"
@@ -106,7 +114,7 @@ const SocialLinksSection = ({ resume }) => {
 
                         <Field label="GitHub" error={errors.github}>
                             <div className="relative">
-                                <Github size={18} className="absolute left-3 top-3 text-zinc-400" />
+                                {/* <GitHub size={18} className="absolute left-3 top-3 text-zinc-400" /> */}
                                 <Input
                                     id="github"
                                     className="pl-10"

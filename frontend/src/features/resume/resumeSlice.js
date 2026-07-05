@@ -13,7 +13,7 @@ import {
 } from "./resumeThunk.js"
 
 const initialState = {
-    resume: [],
+    resumes: [],
     selectedResume: null,
 
     loading: false,

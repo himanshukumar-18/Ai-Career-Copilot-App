@@ -18,13 +18,8 @@ import Label from "../../ui/Label";
 import Textarea from "../../ui/Textarea";
 
 import { experiencesFormSchema } from "../../../lib/validations/experienceSchema";
-import {
-    addExperience,
-    editExperience,
-    removeExperience,
-    selectRowStatus,
-    selectRowError,
-} from "@/features/experience/experienceSlice";
+import { addExperience, editExperience, removeExperience } from "../../../features/experience/experienceThunk";
+import { selectRowStatus, selectRowError } from "../../../features/experience/experienceSelectors";
 
 // Single-item schema pulled from the array schema
 const experienceItemSchema = experiencesFormSchema.shape.experiences.element;

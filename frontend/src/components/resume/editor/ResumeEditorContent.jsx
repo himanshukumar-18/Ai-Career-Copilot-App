@@ -1,13 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
-import PersonalInfoSection from "./sections/PersonalInfoSection";
-import SummarySection from "./sections/SummarySection";
-import ExperienceSection from "./sections/ExperienceSection";
-import EducationSection from "./sections/EducationSection";
-import SkillsSection from "./sections/SkillsSection";
-import ProjectsSection from "./sections/ProjectsSection";
-import CertificationsSection from "./sections/CertificationsSection";
-import LanguagesSection from "./sections/LanguagesSection";
-import SocialLinksSection from "./sections/SocialLinksSection";
+import PersonalInfoSection from "../sections/PersonalInfoSection";
+import SummarySection from "../sections/SummarySection";
+import ExperienceSection from "../sections/ExperienceSection";
+import EducationSection from "../sections/EducationSection";
+import SkillsSection from "../sections/SkillsSection";
+import ProjectsSection from "../sections/ProjectsSection";
+import CertificationsSection from "../sections/CertificationsSection";
+import LanguagesSection from "../sections/LanguagesSection";
+import SocialLinksSection from "../sections/SocialLinksSection";
 
 const SECTION_MAP = {
     personal: PersonalInfoSection,
@@ -30,13 +30,28 @@ const slideVariants = {
 const ResumeEditorContent = ({ activeSection, resume }) => {
     if (!resume) {
         return (
-            <div className="flex flex-1 items-center justify-center text-zinc-500 text-sm">
+            <div className="flex flex-1 items-center justify-center text-sm text-zinc-500">
                 No resume data available.
             </div>
         );
     }
 
-    const SectionComponent = SECTION_MAP[activeSection] ?? PersonalInfoSection;
+    const isKnownSection = Object.prototype.hasOwnProperty.call(
+        SECTION_MAP,
+        activeSection
+    );
+
+    if (!isKnownSection && import.meta.env.NODE_ENV !== "production") {
+        // Helps catch typos or a section id that isn't wired up in the
+        // sidebar (e.g. "social" was missing from ResumeEditorSidebar).
+        console.warn(
+            `ResumeEditorContent: unknown section "${activeSection}", falling back to "personal".`
+        );
+    }
+
+    const SectionComponent = isKnownSection
+        ? SECTION_MAP[activeSection]
+        : PersonalInfoSection;
 
     return (
         <div className="flex-1">

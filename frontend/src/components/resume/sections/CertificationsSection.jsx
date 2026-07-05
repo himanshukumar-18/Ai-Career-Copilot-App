@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { useResumeEditorSection } from "../editor/ResumeEditorContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Award, Link, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,8 +16,8 @@ import { certificationsFormSchema } from "../../../lib/validations/certification
 import {
     getCertificationsThunk,
     updateCertificationsThunk,
-} from "../../../features/resumeCertifications/resumeCertificationsThunk";
-import { resetSaveStatus } from "../../../features/resumeCertifications/resumeCertificationsSlice";
+} from "../../../features/certifications/certificationThunk";
+import { resetSaveStatus } from "../../../features/certifications/certificationSlice";
 import {
     selectCertifications,
     selectIsCertificationsLoading,
@@ -24,7 +25,7 @@ import {
     selectCertificationsSaveSucceeded,
     selectCertificationsSaveFailed,
     selectCertificationsError,
-} from "../../../features/resumeCertifications/resumeCertificationsSelectors";
+} from "../../../features/certifications/certificationSelectors";
 
 const EMPTY_CERTIFICATION = {
     name: "",
@@ -70,6 +71,27 @@ const CertificationsSection = () => {
         name: "certifications",
     });
 
+    const { registerSaveAction } = useResumeEditorSection();
+
+    const onSubmit = async (data) => {
+        try {
+            await dispatch(
+                updateCertificationsThunk({
+                    resumeId,
+                    certifications: data.certifications,
+                })
+            ).unwrap();
+            // Success toast handled by the effect above once saveSucceeded flips.
+        } catch {
+            // Error toast handled by the effect above once saveFailed flips.
+        }
+    };
+
+    useEffect(() => {
+        const unregister = registerSaveAction("certifications", handleSubmit(onSubmit));
+        return unregister;
+    }, [handleSubmit, onSubmit, registerSaveAction]);
+
     // Fetch certifications on mount / resumeId change.
     useEffect(() => {
         if (resumeId) {
@@ -93,20 +115,6 @@ const CertificationsSection = () => {
             dispatch(resetSaveStatus());
         }
     }, [saveSucceeded, saveFailed, errorMessage, dispatch]);
-
-    const onSubmit = async (data) => {
-        try {
-            await dispatch(
-                updateCertificationsThunk({
-                    resumeId,
-                    certifications: data.certifications,
-                })
-            ).unwrap();
-            // Success toast handled by the effect above once saveSucceeded flips.
-        } catch {
-            // Error toast handled by the effect above once saveFailed flips.
-        }
-    };
 
     const handleAddCertification = () => {
         append(EMPTY_CERTIFICATION);

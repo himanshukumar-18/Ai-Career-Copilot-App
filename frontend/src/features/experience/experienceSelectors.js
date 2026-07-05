@@ -1,7 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 
 /** All experience items */
-export const selectExperiences = (state) => state.experience.items;
+export const selectExperiences = (state) =>
+    Array.isArray(state.experience.items) ? state.experience.items : [];
 
 /** List-level fetch/add status */
 export const selectExperienceStatus = (state) => state.experience.status;

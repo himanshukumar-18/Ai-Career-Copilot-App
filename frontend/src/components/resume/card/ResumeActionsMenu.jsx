@@ -28,12 +28,18 @@ const ResumeActionMenu = ({
     onSetDefault,
     onDelete,
 }) => {
+    const stopPropagation = (callback) => (event) => {
+        event.stopPropagation();
+        callback();
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="ghost"
                     size="icon"
+                    onClick={(event) => event.stopPropagation()}
                     className="
             h-9
             w-9
@@ -58,7 +64,7 @@ const ResumeActionMenu = ({
         "
             >
                 <DropdownMenuItem
-                    onClick={() => onEdit(resume)}
+                    onClick={stopPropagation(() => onEdit(resume))}
                     className="cursor-pointer"
                 >
                     <Edit3 className="mr-2 h-4 w-4" />
@@ -66,7 +72,7 @@ const ResumeActionMenu = ({
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                    onClick={() => onDuplicate(resume)}
+                    onClick={stopPropagation(() => onDuplicate(resume))}
                     className="cursor-pointer"
                 >
                     <Copy className="mr-2 h-4 w-4" />
@@ -77,7 +83,7 @@ const ResumeActionMenu = ({
 
                 {resume?.is_published ? (
                     <DropdownMenuItem
-                        onClick={() => onUnpublish(resume)}
+                        onClick={stopPropagation(() => onUnpublish(resume))}
                         className="cursor-pointer"
                     >
                         <Download className="mr-2 h-4 w-4" />
@@ -85,7 +91,7 @@ const ResumeActionMenu = ({
                     </DropdownMenuItem>
                 ) : (
                     <DropdownMenuItem
-                        onClick={() => onPublish(resume)}
+                        onClick={stopPropagation(() => onPublish(resume))}
                         className="cursor-pointer"
                     >
                         <Upload className="mr-2 h-4 w-4" />
@@ -95,7 +101,7 @@ const ResumeActionMenu = ({
 
                 {!resume?.is_default && (
                     <DropdownMenuItem
-                        onClick={() => onSetDefault(resume)}
+                        onClick={stopPropagation(() => onSetDefault(resume))}
                         className="cursor-pointer"
                     >
                         <Star className="mr-2 h-4 w-4" />
@@ -106,7 +112,7 @@ const ResumeActionMenu = ({
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                    onClick={() => onDelete(resume)}
+                    onClick={stopPropagation(() => onDelete(resume))}
                     className="
             cursor-pointer
             text-red-500
