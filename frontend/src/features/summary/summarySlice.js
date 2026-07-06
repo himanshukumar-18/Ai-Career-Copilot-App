@@ -1,65 +1,90 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getSummaryThunk, updateSummaryThunk } from "./summaryThunk";
 
-const FETCH_ERROR_FALLBACK = "Unable to load summary. Please try again.";
-const SAVE_ERROR_FALLBACK = "Unable to save summary. Please try again.";
+import {
+    fetchResumeSummaryThunk,
+    updateResumeSummaryThunk,
+} from "./summaryThunk";
 
-const extractErrorMessage = (payload, fallback) => {
-    if (!payload) return fallback;
-    if (typeof payload === "string") return payload;
-    return payload.message ?? payload.detail ?? fallback;
+const getPayloadData = (payload) => payload?.data ?? payload;
+
+const getErrorMessage = (payload, fallbackMessage) => {
+    if (typeof payload === "string") {
+        return payload;
+    }
+
+    return (
+        payload?.message ||
+        payload?.detail ||
+        fallbackMessage
+    );
 };
 
 const initialState = {
-    data: null,
-    fetchStatus: "idle",
-    saveStatus: "idle",
+    summary: null,
+    isLoading: false,
+    isSaving: false,
     error: null,
+    successMessage: null,
 };
 
 const summarySlice = createSlice({
     name: "summary",
     initialState,
+
     reducers: {
-        resetSaveStatus(state) {
-            state.saveStatus = "idle";
+        clearSummaryError: (state) => {
             state.error = null;
         },
-        clearSummary(state) {
-            state.data = null;
-            state.fetchStatus = "idle";
-            state.saveStatus = "idle";
-            state.error = null;
+
+        clearSummarySuccess: (state) => {
+            state.successMessage = null;
         },
+
+        clearSummary: () => initialState,
     },
+
     extraReducers: (builder) => {
         builder
-            .addCase(getSummaryThunk.pending, (state) => {
-                state.fetchStatus = "pending";
+            .addCase(fetchResumeSummaryThunk.pending, (state) => {
+                state.isLoading = true;
                 state.error = null;
             })
-            .addCase(getSummaryThunk.fulfilled, (state, { payload }) => {
-                state.fetchStatus = "succeeded";
-                state.data = payload ?? null;
+            .addCase(fetchResumeSummaryThunk.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.summary = getPayloadData(action.payload);
             })
-            .addCase(getSummaryThunk.rejected, (state, { payload }) => {
-                state.fetchStatus = "failed";
-                state.error = extractErrorMessage(payload, FETCH_ERROR_FALLBACK);
+            .addCase(fetchResumeSummaryThunk.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Unable to load summary."
+                );
             })
-            .addCase(updateSummaryThunk.pending, (state) => {
-                state.saveStatus = "pending";
+
+            .addCase(updateResumeSummaryThunk.pending, (state) => {
+                state.isSaving = true;
                 state.error = null;
+                state.successMessage = null;
             })
-            .addCase(updateSummaryThunk.fulfilled, (state, { payload }) => {
-                state.saveStatus = "succeeded";
-                state.data = payload;
+            .addCase(updateResumeSummaryThunk.fulfilled, (state, action) => {
+                state.isSaving = false;
+                state.summary = getPayloadData(action.payload);
+                state.successMessage = "Professional summary saved.";
             })
-            .addCase(updateSummaryThunk.rejected, (state, { payload }) => {
-                state.saveStatus = "failed";
-                state.error = extractErrorMessage(payload, SAVE_ERROR_FALLBACK);
+            .addCase(updateResumeSummaryThunk.rejected, (state, action) => {
+                state.isSaving = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Unable to save summary."
+                );
             });
     },
 });
 
-export const { resetSaveStatus, clearSummary } = summarySlice.actions;
+export const {
+    clearSummary,
+    clearSummaryError,
+    clearSummarySuccess,
+} = summarySlice.actions;
+
 export default summarySlice.reducer;

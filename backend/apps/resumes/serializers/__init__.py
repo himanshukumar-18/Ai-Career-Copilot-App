@@ -19,3 +19,5 @@ from .social_link import *
 from .custom_section import *
 
 from .resume_list import *
+
+from .summary import *

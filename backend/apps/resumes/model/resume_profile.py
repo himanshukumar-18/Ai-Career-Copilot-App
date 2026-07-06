@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from .resume import Resume
 
+
 class ResumeProfile(models.Model):
 
     resume = models.OneToOneField(
@@ -9,17 +10,17 @@ class ResumeProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="profile",
     )
-    
+
     first_name = models.CharField(
         max_length=100,
         blank=True,
         default="",
-    )      
+    )
 
     last_name = models.CharField(
         max_length=100,
         blank=True,
-            default="",
+        default="",
     )
 
     email = models.EmailField(
@@ -30,7 +31,7 @@ class ResumeProfile(models.Model):
     postal_code = models.CharField(
         max_length=20,
         blank=True,
-            default="",
+        default="",
     )
 
     date_of_birth = models.DateField(
@@ -46,47 +47,39 @@ class ResumeProfile(models.Model):
 
     headline = models.CharField(
         max_length=255,
+        blank=True,
+        default="",
     )
 
     phone = models.CharField(
         max_length=20,
+        blank=True,
+        default="",
     )
 
     address = models.CharField(
         max_length=255,
+        blank=True,
+        default="",
     )
 
     city = models.CharField(
         max_length=100,
+        blank=True,
+        default="",
     )
 
     state = models.CharField(
         max_length=100,
         blank=True,
+        default="",
     )
 
     country = models.CharField(
         max_length=100,
-    )
-
-    website = models.URLField(
         blank=True,
+        default="",
     )
-
-    linkedin = models.URLField(
-        blank=True,
-    )
-
-    github = models.URLField(
-        blank=True,
-    )
-
-    portfolio = models.URLField(
-        blank=True,
-    )
-
-    summary = models.TextField()
 
     def __str__(self):
-
         return self.resume.title

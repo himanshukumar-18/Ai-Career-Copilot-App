@@ -10,3 +10,4 @@ from .reference import *
 from .skill import *
 from .social_link import *
 from .resume_profile import *
+from .summary import * 

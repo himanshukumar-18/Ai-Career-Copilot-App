@@ -1,5 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
+from pathlib import Path
+from django.conf import settings
+from django.conf.urls.static import static
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 from drf_spectacular.views import (
 
@@ -58,3 +66,9 @@ urlpatterns = [
         name="redoc",
     ),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )

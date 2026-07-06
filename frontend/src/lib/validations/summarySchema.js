@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 export const summaryFormSchema = z.object({
-    summary: z
+    content: z
         .string()
         .trim()
-        .min(20, "Summary must be at least 20 characters.")
-        .max(1000, "Summary cannot exceed 1000 characters."),
+        .max(2000, "Summary must be 2000 characters or fewer."),
 });

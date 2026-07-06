@@ -1,125 +1,125 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 import {
-    getResumeProfileThunk,
+    createResumeProfileThunk,
+    fetchResumeProfileThunk,
     updateResumeProfileThunk,
+    uploadResumePhotoThunk,
 } from "./resumeProfileThunk";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const getPayloadData = (payload) => payload?.data ?? payload;
 
-const SLICE_NAME = "resumeProfile";
-
-const FETCH_ERROR_FALLBACK = "Unable to load resume profile. Please try again.";
-const SAVE_ERROR_FALLBACK = "Unable to save changes. Please try again.";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Extracts a human-readable error message from a rejected thunk payload.
- * Supports DRF-style `{ detail }`, generic `{ message }`, and plain strings.
- */
-const extractErrorMessage = (payload, fallback) => {
-    if (!payload) return fallback;
-    if (typeof payload === "string") return payload;
-    return payload.message ?? payload.detail ?? fallback;
-};
-
-// ─── Initial State ────────────────────────────────────────────────────────────
+const getErrorMessage = (payload) =>
+    payload?.message ||
+    payload?.detail ||
+    "Unable to complete this action.";
 
 const initialState = {
-    /** Resolved profile data; null until successfully fetched. */
     profile: null,
-
-    /** True while the initial GET is in-flight. */
-    fetchStatus: "idle", // "idle" | "pending" | "succeeded" | "failed"
-
-    /** True while a PATCH/PUT save is in-flight. */
-    saveStatus: "idle", // "idle" | "pending" | "succeeded" | "failed"
-
-    /** Populated on any error; cleared on the next action. */
+    isLoading: false,
+    isSaving: false,
+    isUploadingPhoto: false,
     error: null,
+    successMessage: null,
 };
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
-
 const resumeProfileSlice = createSlice({
-    name: SLICE_NAME,
+    name: "resumeProfile",
     initialState,
 
     reducers: {
-        /**
-         * Call after consuming success / error UI feedback so transient flags
-         * don't linger across navigation or re-renders.
-         */
-        resetSaveStatus(state) {
-            state.saveStatus = "idle";
+        clearResumeProfileError: (state) => {
             state.error = null;
         },
 
-        /**
-         * Wipes profile from state, e.g. on resume deselect or user sign-out.
-         */
-        clearResumeProfile(state) {
+        clearResumeProfileSuccess: (state) => {
+            state.successMessage = null;
+        },
+
+        clearResumeProfile: (state) => {
             state.profile = null;
-            state.fetchStatus = "idle";
-            state.saveStatus = "idle";
             state.error = null;
+            state.successMessage = null;
         },
     },
 
     extraReducers: (builder) => {
-        // ── GET profile ──────────────────────────────────────────────────────
         builder
-            .addCase(getResumeProfileThunk.pending, (state) => {
-                state.fetchStatus = "pending";
+            .addCase(fetchResumeProfileThunk.pending, (state) => {
+                state.isLoading = true;
                 state.error = null;
             })
-            .addCase(getResumeProfileThunk.fulfilled, (state, { payload }) => {
-                state.fetchStatus = "succeeded";
-                state.profile = payload;
+            .addCase(fetchResumeProfileThunk.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.profile = getPayloadData(action.payload);
             })
-            .addCase(getResumeProfileThunk.rejected, (state, { payload }) => {
-                state.fetchStatus = "failed";
-                state.error = extractErrorMessage(payload, FETCH_ERROR_FALLBACK);
-            });
+            .addCase(fetchResumeProfileThunk.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Failed to fetch resume profile."
+                );
+            })
 
-        // ── UPDATE profile ───────────────────────────────────────────────────
-        builder
+            .addCase(createResumeProfileThunk.pending, (state) => {
+                state.isSaving = true;
+                state.error = null;
+                state.successMessage = null;
+            })
+            .addCase(createResumeProfileThunk.fulfilled, (state, action) => {
+                state.isSaving = false;
+                state.profile = getPayloadData(action.payload);
+                state.successMessage = "Personal information saved.";
+            })
+            .addCase(createResumeProfileThunk.rejected, (state, action) => {
+                state.isSaving = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Failed to create resume profile."
+                );
+            })
+
             .addCase(updateResumeProfileThunk.pending, (state) => {
-                state.saveStatus = "pending";
+                state.isSaving = true;
+                state.error = null;
+                state.successMessage = null;
+            })
+            .addCase(updateResumeProfileThunk.fulfilled, (state, action) => {
+                state.isSaving = false;
+                state.profile = getPayloadData(action.payload);
+                state.successMessage = "Personal information updated.";
+            })
+            .addCase(updateResumeProfileThunk.rejected, (state, action) => {
+                state.isSaving = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Failed to update resume profile."
+                );
+            })
+
+            .addCase(uploadResumePhotoThunk.pending, (state) => {
+                state.isUploadingPhoto = true;
                 state.error = null;
             })
-            .addCase(updateResumeProfileThunk.fulfilled, (state, { payload }) => {
-                state.saveStatus = "succeeded";
-                state.profile = payload;
+            .addCase(uploadResumePhotoThunk.fulfilled, (state, action) => {
+                state.isUploadingPhoto = false;
+                state.profile = getPayloadData(action.payload);
+                state.successMessage = "Profile photo uploaded.";
             })
-            .addCase(updateResumeProfileThunk.rejected, (state, { payload }) => {
-                state.saveStatus = "failed";
-                state.error = extractErrorMessage(payload, SAVE_ERROR_FALLBACK);
+            .addCase(uploadResumePhotoThunk.rejected, (state, action) => {
+                state.isUploadingPhoto = false;
+                state.error = getErrorMessage(
+                    action.payload,
+                    "Failed to upload profile photo."
+                );
             });
     },
 });
 
-// ─── Actions ──────────────────────────────────────────────────────────────────
-
-export const { resetSaveStatus, clearResumeProfile } = resumeProfileSlice.actions;
-
-// ─── Selectors ────────────────────────────────────────────────────────────────
-
-const selectResumeProfileSlice = (state) => state[SLICE_NAME];
-
-export const selectResumeProfile = (state) => selectResumeProfileSlice(state).profile;
-export const selectProfileError = (state) => selectResumeProfileSlice(state).error;
-
-// Fetch-phase derived booleans
-export const selectIsProfileLoading = (state) => selectResumeProfileSlice(state).fetchStatus === "pending";
-export const selectIsProfileLoaded = (state) => selectResumeProfileSlice(state).fetchStatus === "succeeded";
-export const selectHasProfileError = (state) => selectResumeProfileSlice(state).fetchStatus === "failed";
-
-// Save-phase derived booleans
-export const selectIsSaving = (state) => selectResumeProfileSlice(state).saveStatus === "pending";
-export const selectSaveSucceeded = (state) => selectResumeProfileSlice(state).saveStatus === "succeeded";
-export const selectSaveFailed = (state) => selectResumeProfileSlice(state).saveStatus === "failed";
-
-// ─── Reducer ──────────────────────────────────────────────────────────────────
+export const {
+    clearResumeProfileError,
+    clearResumeProfileSuccess,
+    clearResumeProfile,
+} = resumeProfileSlice.actions;
 
 export default resumeProfileSlice.reducer;

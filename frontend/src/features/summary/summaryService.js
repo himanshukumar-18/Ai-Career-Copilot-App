@@ -1,26 +1,49 @@
-import api from "@/api/axios";
+import api from "../../api/axios";
 
-const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
+const unwrapResponse = (response) =>
+    response?.data?.data ?? response?.data?.results ?? response?.data;
 
 const normalizeApiError = (error) => {
-    if (error.response?.data) return error.response.data;
-    return { message: error.message || "Network error. Please try again." };
+    const data = error?.response?.data;
+
+    if (typeof data === "string") {
+        return { message: data };
+    }
+
+    if (data && typeof data === "object") {
+        return data;
+    }
+
+    return {
+        message: error?.message || "Network error. Please try again.",
+    };
 };
 
-export const getSummary = async () => {
+const getSummary = async (resumeId) => {
     try {
-        const response = await api.get("/summary/");
-        return unwrap(response);
+        const response = await api.get(`/resumes/${resumeId}/summary/`);
+        return unwrapResponse(response);
     } catch (error) {
         throw normalizeApiError(error);
     }
 };
 
-export const updateSummary = async (id, summaryData) => {
+const updateSummary = async ({ resumeId, content }) => {
     try {
-        const response = await api.patch(`/summary/${id}/`, summaryData);
-        return unwrap(response);
+        const response = await api.patch(
+            `/resumes/${resumeId}/summary/`,
+            { content }
+        );
+
+        return unwrapResponse(response);
     } catch (error) {
         throw normalizeApiError(error);
     }
 };
+
+const summaryService = {
+    getSummary,
+    updateSummary,
+};
+
+export default summaryService;

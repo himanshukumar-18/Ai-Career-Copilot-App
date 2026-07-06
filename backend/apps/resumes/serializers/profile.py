@@ -3,27 +3,24 @@ from rest_framework import serializers
 from apps.resumes.model.resume_profile import ResumeProfile
 
 
-class ResumeProfileSerializer(
-    serializers.ModelSerializer
-):
+class ResumeProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
-
         model = ResumeProfile
 
         fields = [
             "id",
+            "first_name",
+            "last_name",
+            "email",
             "headline",
             "phone",
             "address",
             "city",
             "state",
+            "postal_code",
             "country",
-            "website",
-            "linkedin",
-            "github",
-            "portfolio",
-            "summary",
+            "profile_photo",
         ]
 
         read_only_fields = [
@@ -31,11 +28,12 @@ class ResumeProfileSerializer(
         ]
 
     def validate_summary(self, value):
-
         value = value.strip()
 
-        if len(value) < 30:
-
+        # Only enforce the minimum length once the user actually writes
+        # something. An empty summary is allowed (profile is blank on
+        # creation and filled in section by section).
+        if value and len(value) < 30:
             raise serializers.ValidationError(
                 "Professional summary should contain at least 30 characters."
             )
@@ -43,40 +41,13 @@ class ResumeProfileSerializer(
         return value
 
     def validate_phone(self, value):
-
         value = value.strip()
 
-        if len(value) < 10:
-
+        # Same idea: don't block saving other sections just because
+        # phone hasn't been filled in yet.
+        if value and len(value) < 10:
             raise serializers.ValidationError(
                 "Please enter a valid phone number."
             )
 
         return value
-
-    def validate(self, attrs):
-
-        urls = [
-            "website",
-            "linkedin",
-            "github",
-            "portfolio",
-        ]
-
-        for field in urls:
-
-            url = attrs.get(field)
-
-            if (
-                url
-                and not (
-                    url.startswith("http://")
-                    or url.startswith("https://")
-                )
-            ):
-
-                attrs[field] = (
-                    "https://" + url
-                )
-
-        return attrs

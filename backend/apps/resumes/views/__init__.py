@@ -12,3 +12,4 @@ from .achievement import AchievementViewSet
 from .reference import ReferenceViewSet
 from .social_link import SocialLinkViewSet
 from .custom_section import CustomSectionViewSet
+from .summary import ResumeSummaryView
