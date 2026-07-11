@@ -1,78 +1,93 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-    getExperiences,
-    createExperience,
-    updateExperience,
-    deleteExperience,
-} from "../experience/experienceService.js";
+import experienceService from "./experienceService";
 
-/**
- * Pulls a readable error message out of a DRF-style error response.
- * @param {*} error - Axios error object
- * @returns {string}
- */
-const extractErrorMessage = (error) => {
-    const data = error?.response?.data;
-    if (!data) return error?.message || "Something went wrong";
+const getErrorMessage = (error, fallbackMessage) => {
+    const responseData = error?.response?.data;
+    const data = responseData?.errors ?? responseData;
 
-    if (typeof data === "string") return data;
-    if (data.detail) return data.detail;
-    if (data.message) return data.message;
-
-    // DRF field errors, e.g. { title: ["This field is required."] }
-    const firstKey = Object.keys(data)[0];
-    if (firstKey) {
-        const value = data[firstKey];
-        return Array.isArray(value) ? value[0] : String(value);
+    if (typeof data === "string") {
+        return data;
     }
 
-    return "Something went wrong";
+    if (data?.detail) {
+        return data.detail;
+    }
+
+    if (data?.message) {
+        return data.message;
+    }
+
+    if (data && typeof data === "object") {
+        const firstKey = Object.keys(data)[0];
+
+        if (firstKey) {
+            const value = data[firstKey];
+
+            return Array.isArray(value)
+                ? value[0]
+                : String(value);
+        }
+    }
+
+    return error?.message || fallbackMessage;
 };
 
-/** Fetch all experiences */
 export const fetchExperiences = createAsyncThunk(
     "experience/fetchExperiences",
-    async (_, { rejectWithValue }) => {
+    async (resumeId, { rejectWithValue }) => {
         try {
-            return await getExperiences();
+            return await experienceService.getExperiences(resumeId);
         } catch (error) {
-            return rejectWithValue(extractErrorMessage(error));
+            return rejectWithValue(
+                getErrorMessage(error, "Unable to load experiences.")
+            );
         }
     }
 );
 
-/** Add a new experience */
 export const addExperience = createAsyncThunk(
     "experience/addExperience",
-    async (experienceData, { rejectWithValue }) => {
+    async (payload, { rejectWithValue }) => {
         try {
-            return await createExperience(experienceData);
+            return await experienceService.createExperience(payload);
         } catch (error) {
-            return rejectWithValue(extractErrorMessage(error));
+            return rejectWithValue(
+                getErrorMessage(error, "Unable to add experience.")
+            );
         }
     }
 );
 
-/** Update a single experience by id */
 export const editExperience = createAsyncThunk(
     "experience/editExperience",
-    async ({ id, experienceData }, { rejectWithValue }) => {
+    async ({ id, payload }, { rejectWithValue }) => {
         try {
-            return await updateExperience(id, experienceData);
+            return await experienceService.updateExperience(id, payload);
         } catch (error) {
-            return rejectWithValue({ id, message: extractErrorMessage(error) });
+            return rejectWithValue({
+                id,
+                message: getErrorMessage(
+                    error,
+                    "Unable to update experience."
+                ),
+            });
         }
     }
 );
 
-/** Remove a single experience by id */
 export const removeExperience = createAsyncThunk(
     "experience/removeExperience",
     async (id, { rejectWithValue }) => {
         try {
-            return await deleteExperience(id);
+            return await experienceService.deleteExperience(id);
         } catch (error) {
-            return rejectWithValue({ id, message: extractErrorMessage(error) });
+            return rejectWithValue({
+                id,
+                message: getErrorMessage(
+                    error,
+                    "Unable to delete experience."
+                ),
+            });
         }
     }
 );

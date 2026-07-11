@@ -1,49 +1,71 @@
 import api from "../../api/axios";
 
-/**
- * Unwraps a DRF-style response, falling back to raw response data
- * if no nested "data" key is present.
- * @param {import("axios").AxiosResponse} response
- * @returns {*}
- */
-const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
+const unwrapResponse = (response) => {
+    const body = response?.data?.data ?? response?.data;
 
-/**
- * Fetch all experience entries for the current user.
- * @returns {Promise<Array<Object>>}
- */
-export const getExperiences = async () => {
-    const response = await api.get("/experiences/");
-    return unwrap(response);
+    // Paginated list responses look like:
+    // { data: { pagination: {...}, results: [...] } }
+    // Plain create/update responses look like:
+    // { data: { id, company, ... } }
+    if (body && typeof body === "object" && Array.isArray(body.results)) {
+        return body.results;
+    }
+
+    return body;
 };
 
-/**
- * Create a new experience entry.
- * @param {Object} experienceData
- * @returns {Promise<Object>}
- */
-export const createExperience = async (experienceData) => {
-    const response = await api.post("/experiences/", experienceData);
-    return unwrap(response);
+const getExperiences = async (resumeId) => {
+    const response = await api.get("/experiences/", {
+        params: { resume: resumeId },
+    });
+
+    const data = unwrapResponse(response);
+
+    return Array.isArray(data) ? data : [];
 };
 
-/**
- * Update an existing experience entry (partial update).
- * @param {string|number} id
- * @param {Object} experienceData
- * @returns {Promise<Object>}
- */
-export const updateExperience = async (id, experienceData) => {
-    const response = await api.patch(`/experiences/${id}/`, experienceData);
-    return unwrap(response);
+const createExperience = async (payload) => {
+    // Last checkpoint before this leaves the browser. If `resume` is
+    // missing or not a real number here, sending it anyway just produces
+    // a confusing error from the server. Fail clearly, right here,
+    // with the exact payload printed so it's obvious what went wrong.
+    if (
+        payload?.resume === undefined ||
+        payload?.resume === null ||
+        Number.isNaN(Number(payload.resume))
+    ) {
+        // eslint-disable-next-line no-console
+        console.error(
+            "experienceService.createExperience: payload is missing a valid 'resume' id.",
+            payload
+        );
+
+        throw new Error(
+            "Cannot save experience: resume id is missing. Please reload the page."
+        );
+    }
+
+    const response = await api.post("/experiences/", payload);
+    return unwrapResponse(response);
 };
 
-/**
- * Delete an experience entry.
- * @param {string|number} id
- * @returns {Promise<string|number>} the deleted id
- */
-export const deleteExperience = async (id) => {
-    await api.delete(`/experiences/${id}/`);
-    return id;
+const updateExperience = async (experienceId, payload) => {
+    const response = await api.patch(
+        `/experiences/${experienceId}/`,
+        payload
+    );
+
+    return unwrapResponse(response);
+};
+
+const deleteExperience = async (experienceId) => {
+    await api.delete(`/experiences/${experienceId}/`);
+    return experienceId;
+};
+
+export default {
+    getExperiences,
+    createExperience,
+    updateExperience,
+    deleteExperience,
 };

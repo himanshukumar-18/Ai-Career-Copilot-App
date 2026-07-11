@@ -16,6 +16,10 @@ from rest_framework.views import exception_handler
 from config.responses import ApiResponse
 from config.logging import project_logger
 
+import logging
+import traceback
+
+
 
 def _detail_message(data, default):
 
@@ -66,6 +70,9 @@ def custom_exception_handler(
             "Unexpected exception at %s",
             getattr(request, "path", None),
         )
+
+        # Expose traceback in logs for debugging (keeps API response unchanged)
+        project_logger.exception("Original exception: %r", exc)
 
         return ApiResponse.server_error(
             request=request,
@@ -179,3 +186,16 @@ def custom_exception_handler(
         request=request,
         message="Internal server error.",
     )
+
+logger = logging.getLogger("django")
+
+def custom_exception_handler(exc, context):
+    response = exception_handler(exc, context)  # whatever it already calls
+
+    if response is None:
+        # This is the unhandled exception being swallowed right now.
+        logger.error("Unhandled exception: %s", exc, exc_info=True)
+        traceback.print_exc()
+        return ApiResponse.server_error(request=context["request"].wsgi_request if hasattr(context["request"], "wsgi_request") else context["request"])
+
+    return response

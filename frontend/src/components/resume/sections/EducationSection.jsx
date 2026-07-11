@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GraduationCap, Plus, Trash2 } from "lucide-react";
@@ -65,6 +65,8 @@ const EducationSection = () => {
         register,
         watch,
         reset,
+        trigger,
+        getValues,
         formState: { errors },
     } = useForm({
         resolver: zodResolver(educationsFormSchema),
@@ -107,10 +109,10 @@ const EducationSection = () => {
      * Each row saves independently since the API is per-item, not bulk.
      */
     const handleSaveRow = async (index) => {
-        const isValid = await control.trigger(`educations.${index}`);
+        const isValid = await trigger(`educations.${index}`);
         if (!isValid) return;
 
-        const rowData = control._formValues.educations[index];
+        const rowData = getValues(`educations.${index}`);
         const { id, ...educationData } = rowData;
 
         try {
@@ -142,7 +144,7 @@ const EducationSection = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-24 text-zinc-400">
+            <div className="flex items-center justify-center py-24 text-sm text-zinc-500">
                 Loading education history...
             </div>
         );
@@ -150,31 +152,49 @@ const EducationSection = () => {
 
     return (
         <motion.section
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="w-full"
         >
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
+            <div className="border border-zinc-800 bg-zinc-950">
                 {/* Header */}
-                <div className="border-b border-zinc-800 px-8 py-6">
-                    <div className="flex items-center gap-3">
-                        <GraduationCap size={26} className="text-red-500" />
+                <header className="flex flex-col gap-4 border-b border-zinc-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <div className="flex items-start gap-3">
+                        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-black text-zinc-400">
+                            <GraduationCap size={15} />
+                        </span>
+
                         <div>
-                            <h2 className="text-2xl font-bold text-white">
+                            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Resume section
+                            </p>
+
+                            <h2 className="mt-1 text-xl font-semibold text-white">
                                 Education
                             </h2>
-                            <p className="mt-1 text-sm text-zinc-400">
+
+                            <p className="mt-1 text-sm text-zinc-500">
                                 Showcase your academic qualifications and
                                 educational background.
                             </p>
                         </div>
                     </div>
-                </div>
+
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAddEducation}
+                        className="h-10 shrink-0 px-4 text-xs"
+                    >
+                        <Plus size={15} />
+                        Add education
+                    </Button>
+                </header>
 
                 {/* Body */}
-                <div className="space-y-6 p-8">
-                    <AnimatePresence>
+                <div className="space-y-5 p-5 sm:p-6">
+                    <AnimatePresence initial={false}>
                         {fields.length === 0 ? (
                             <EmptyState onAdd={handleAddEducation} />
                         ) : (
@@ -184,6 +204,7 @@ const EducationSection = () => {
                                     index={index}
                                     rowId={field.id}
                                     register={register}
+                                    control={control}
                                     errors={errors}
                                     watch={watch}
                                     isMutating={isMutating}
@@ -195,16 +216,6 @@ const EducationSection = () => {
                             ))
                         )}
                     </AnimatePresence>
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleAddEducation}
-                        className="w-full"
-                    >
-                        <Plus size={16} />
-                        Add Education
-                    </Button>
                 </div>
             </div>
         </motion.section>
@@ -214,6 +225,7 @@ const EducationSection = () => {
 /** A single education entry: its fields, save, and remove controls. */
 const EducationRow = ({
     index,
+    control,
     register,
     errors,
     watch,
@@ -230,9 +242,9 @@ const EducationRow = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+            className="border border-zinc-800 bg-zinc-900/40 p-5"
         >
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Field label="Degree" error={rowErrors.degree}>
                     <Input
                         placeholder="Bachelor of Technology"
@@ -247,7 +259,7 @@ const EducationRow = ({
                     />
                 </Field>
 
-                <Field label="Field of Study" error={rowErrors.field_of_study}>
+                <Field label="Field of study" error={rowErrors.field_of_study}>
                     <Input
                         placeholder="Computer Science"
                         {...register(`educations.${index}.field_of_study`)}
@@ -261,14 +273,14 @@ const EducationRow = ({
                     />
                 </Field>
 
-                <Field label="Start Date" error={rowErrors.start_date}>
+                <Field label="Start date" error={rowErrors.start_date}>
                     <Input
                         type="date"
                         {...register(`educations.${index}.start_date`)}
                     />
                 </Field>
 
-                <Field label="End Date" error={rowErrors.end_date}>
+                <Field label="End date" error={rowErrors.end_date}>
                     <Input
                         type="date"
                         disabled={isCurrent}
@@ -283,10 +295,17 @@ const EducationRow = ({
                     />
                 </Field>
 
-                <div className="flex items-end gap-3">
-                    <Checkbox
-                        id={`current-${index}`}
-                        {...register(`educations.${index}.is_current`)}
+                <div className="flex items-end gap-3 pb-1">
+                    <Controller
+                        name={`educations.${index}.is_current`}
+                        control={control}
+                        render={({ field }) => (
+                            <Checkbox
+                                id={`current-${index}`}
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        )}
                     />
                     <Label htmlFor={`current-${index}`}>
                         Currently studying here
@@ -294,7 +313,7 @@ const EducationRow = ({
                 </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-4">
                 <Field label="Description" error={rowErrors.description}>
                     <Textarea
                         rows={5}
@@ -304,21 +323,27 @@ const EducationRow = ({
                 </Field>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-5 flex justify-end gap-3">
                 <motion.div whileTap={{ scale: 0.97 }}>
                     <Button
                         type="button"
                         variant="destructive"
                         onClick={onRemove}
                         disabled={isMutating}
+                        className="h-9 px-4 text-xs"
                     >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                         Remove
                     </Button>
                 </motion.div>
 
                 <motion.div whileTap={{ scale: 0.97 }}>
-                    <Button type="button" onClick={onSave} disabled={isMutating}>
+                    <Button
+                        type="button"
+                        onClick={onSave}
+                        disabled={isMutating}
+                        className="h-9 px-4 text-xs"
+                    >
                         {isMutating ? "Saving..." : "Save"}
                     </Button>
                 </motion.div>
@@ -330,29 +355,42 @@ const EducationRow = ({
 /** Pairs a label, its input, and a validation message. */
 const Field = ({ label, error, children }) => (
     <div>
-        <Label>{label}</Label>
+        <Label className="mb-1.5 block text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            {label}
+        </Label>
         {children}
-        {error && <p className="mt-1 text-sm text-red-500">{error.message}</p>}
+        {error && (
+            <p className="mt-1 text-xs text-red-500">{error.message}</p>
+        )}
     </div>
 );
 
 /** Shown when there are no education entries yet. */
 const EmptyState = ({ onAdd }) => (
     <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="rounded-xl border border-dashed border-zinc-700 p-12 text-center"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        className="border border-dashed border-zinc-700 px-5 py-16 text-center"
     >
-        <GraduationCap size={40} className="mx-auto text-zinc-600" />
-        <h3 className="mt-4 text-lg font-semibold text-white">
-            No Education Added
+        <GraduationCap size={38} className="mx-auto text-zinc-700" />
+
+        <h3 className="mt-4 text-sm font-semibold text-zinc-300">
+            No education added yet
         </h3>
-        <p className="mt-2 text-sm text-zinc-500">
+
+        <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-zinc-500">
             Add your education to strengthen your resume.
         </p>
-        <Button type="button" variant="outline" className="mt-5" onClick={onAdd}>
-            <Plus size={16} />
-            Add Education
+
+        <Button
+            type="button"
+            variant="outline"
+            onClick={onAdd}
+            className="mt-5 h-9 px-4 text-xs"
+        >
+            <Plus size={14} />
+            Add education
         </Button>
     </motion.div>
 );

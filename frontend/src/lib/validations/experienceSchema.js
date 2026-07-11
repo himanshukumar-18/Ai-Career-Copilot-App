@@ -12,47 +12,42 @@ export const experienceSchema = z
             .trim()
             .min(2, "Position is required."),
 
-        employment_type: z
-            .string()
-            .optional(),
+        employment_type: z.string().optional(),
 
-        location: z
-            .string()
-            .optional(),
+        location: z.string().trim().optional(),
 
         start_date: z
             .string()
             .min(1, "Start date is required."),
 
-        end_date: z
-            .string()
-            .optional(),
+        end_date: z.string().optional(),
 
-        is_current: z.boolean(),
+        currently_working: z.boolean().default(false),
 
-        description: z
-            .string()
-            .optional(),
-
-        responsibilities: z
-            .string()
-            .optional(),
+        description: z.string().trim().optional(),
     })
-    .refine(
-        (data) => {
-            if (data.is_current) return true;
-
-            return (
-                data.end_date &&
-                data.end_date.length > 0
-            );
-        },
-        {
-            path: ["end_date"],
-            message:
-                "End date is required unless this is your current job.",
+    .superRefine((data, context) => {
+        if (!data.currently_working && !data.end_date) {
+            context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["end_date"],
+                message:
+                    "End date is required unless this is your current role.",
+            });
         }
-    );
+
+        if (
+            data.start_date &&
+            data.end_date &&
+            new Date(data.end_date) < new Date(data.start_date)
+        ) {
+            context.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["end_date"],
+                message: "End date cannot be earlier than start date.",
+            });
+        }
+    });
 
 export const experiencesFormSchema = z.object({
     experiences: z.array(experienceSchema),

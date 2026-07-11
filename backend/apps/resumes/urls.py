@@ -16,7 +16,7 @@ from apps.resumes.views import (
     SocialLinkViewSet,
 )
 
-from .views.profile import ResumeProfileViewSet
+from apps.resumes.views.profile import ResumeProfileViewSet
 
 router = DefaultRouter()
 
@@ -33,14 +33,11 @@ router.register(r"social-links", SocialLinkViewSet, basename="social-link")
 router.register(r"custom-sections", CustomSectionViewSet, basename="custom-section")
 
 urlpatterns = router.urls + [
-    # One profile belongs to one resume.
     path(
         "resumes/<int:resume_id>/profile/",
         ResumeProfileViewSet.as_view(),
         name="resume-profile",
     ),
-
-    # One summary belongs to one resume.
     path(
         "resumes/<int:resume_id>/summary/",
         ResumeSummaryView.as_view(),

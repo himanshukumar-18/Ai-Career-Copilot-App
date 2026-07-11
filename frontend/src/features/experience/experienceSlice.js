@@ -1,97 +1,135 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchExperiences, addExperience, editExperience, removeExperience,  } from "./experienceThunk"
+import {
+    addExperience,
+    editExperience,
+    fetchExperiences,
+    removeExperience,
+} from "./experienceThunk";
 
 const initialState = {
     items: [],
-    status: "idle", // "idle" | "pending" | "succeeded" | "failed"
+    status: "idle",
     error: null,
-    // Per-row status for save/delete, keyed by experience id
-    rowStatus: {}, // { [id]: "idle" | "pending" | "succeeded" | "failed" }
-    rowError: {}, // { [id]: string | null }
+    addStatus: "idle",
+    addError: null,
+    rowStatus: {},
+    rowError: {},
 };
 
 const experienceSlice = createSlice({
     name: "experience",
     initialState,
+
     reducers: {
-        /** Clear list-level error, e.g. after showing a toast */
         clearExperienceError: (state) => {
             state.error = null;
         },
-        /** Clear a specific row's error, e.g. after showing a toast */
+
+        clearAddError: (state) => {
+            state.addError = null;
+        },
+
         clearRowError: (state, action) => {
             delete state.rowError[action.payload];
         },
+
+        resetExperiences: () => initialState,
     },
+
     extraReducers: (builder) => {
         builder
-            // Fetch all
             .addCase(fetchExperiences.pending, (state) => {
                 state.status = "pending";
                 state.error = null;
             })
             .addCase(fetchExperiences.fulfilled, (state, action) => {
                 state.status = "succeeded";
-                state.items = action.payload;
+                state.items = Array.isArray(action.payload)
+                    ? action.payload
+                    : [];
             })
             .addCase(fetchExperiences.rejected, (state, action) => {
                 state.status = "failed";
-                state.error = action.payload;
+                state.error =
+                    action.payload || "Unable to load experiences.";
             })
 
-            // Add
             .addCase(addExperience.pending, (state) => {
-                state.status = "pending";
-                state.error = null;
+                state.addStatus = "pending";
+                state.addError = null;
             })
             .addCase(addExperience.fulfilled, (state, action) => {
-                state.status = "succeeded";
+                state.addStatus = "succeeded";
                 state.items.push(action.payload);
             })
             .addCase(addExperience.rejected, (state, action) => {
-                state.status = "failed";
-                state.error = action.payload;
+                state.addStatus = "failed";
+                state.addError =
+                    action.payload || "Unable to add experience.";
             })
 
-            // Edit (per-row)
             .addCase(editExperience.pending, (state, action) => {
                 const id = action.meta.arg.id;
+
                 state.rowStatus[id] = "pending";
                 state.rowError[id] = null;
             })
             .addCase(editExperience.fulfilled, (state, action) => {
-                const updated = action.payload;
-                state.rowStatus[updated.id] = "succeeded";
-                const index = state.items.findIndex((item) => item.id === updated.id);
-                if (index !== -1) state.items[index] = updated;
+                const updatedExperience = action.payload;
+
+                state.rowStatus[updatedExperience.id] = "succeeded";
+
+                const index = state.items.findIndex(
+                    (item) => item.id === updatedExperience.id
+                );
+
+                if (index !== -1) {
+                    state.items[index] = updatedExperience;
+                }
             })
             .addCase(editExperience.rejected, (state, action) => {
-                const { id, message } = action.payload;
+                const { id, message } = action.payload || {};
+
+                if (!id) return;
+
                 state.rowStatus[id] = "failed";
-                state.rowError[id] = message;
+                state.rowError[id] =
+                    message || "Unable to update experience.";
             })
 
-            // Delete (per-row)
             .addCase(removeExperience.pending, (state, action) => {
                 const id = action.meta.arg;
+
                 state.rowStatus[id] = "pending";
                 state.rowError[id] = null;
             })
             .addCase(removeExperience.fulfilled, (state, action) => {
                 const id = action.payload;
-                state.items = state.items.filter((item) => item.id !== id);
+
+                state.items = state.items.filter(
+                    (item) => item.id !== id
+                );
+
                 delete state.rowStatus[id];
                 delete state.rowError[id];
             })
             .addCase(removeExperience.rejected, (state, action) => {
-                const { id, message } = action.payload;
+                const { id, message } = action.payload || {};
+
+                if (!id) return;
+
                 state.rowStatus[id] = "failed";
-                state.rowError[id] = message;
+                state.rowError[id] =
+                    message || "Unable to delete experience.";
             });
     },
 });
 
-export const { clearExperienceError, clearRowError } = experienceSlice.actions;
+export const {
+    clearExperienceError,
+    clearAddError,
+    clearRowError,
+    resetExperiences,
+} = experienceSlice.actions;
 
 export default experienceSlice.reducer;
-

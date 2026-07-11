@@ -1,7 +1,6 @@
 // api/education.js
 
-import api from "@/api/axios";
-
+import api from "../../api/axios";
 /**
  * @typedef {Object} Education
  * @property {string} [id]
@@ -48,6 +47,7 @@ export const getEducations = async () => {
  */
 export const createEducation = async (educationData) => {
     try {
+        console.log(educationData)
         const response = await api.post("/educations/", educationData);
         return unwrap(response);
     } catch (error) {

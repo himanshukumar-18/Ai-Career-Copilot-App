@@ -15,7 +15,7 @@ class ExperienceService:
     ):
 
         return Experience.objects.filter(
-            resume=Resume
+            resume=resume
         ).order_by(
             "display_order",
             "-start_date",
