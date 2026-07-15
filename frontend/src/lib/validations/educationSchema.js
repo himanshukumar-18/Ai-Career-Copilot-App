@@ -28,7 +28,7 @@ export const educationSchema = z
 
         end_date: z.string().optional(),
 
-        is_current: z.boolean(),
+        currently_studying: z.boolean(),
 
         grade: z.string().optional(),
 
@@ -36,7 +36,7 @@ export const educationSchema = z
     })
     .refine(
         (data) => {
-            if (data.is_current) return true;
+            if (data.currently_studying) return true;
 
             return (
                 data.end_date &&

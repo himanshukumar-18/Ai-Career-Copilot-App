@@ -1,85 +1,128 @@
-// api/education.js
-
 import api from "../../api/axios";
-/**
- * @typedef {Object} Education
- * @property {string} [id]
- * @property {string} institution
- * @property {string} degree
- * @property {string} [field_of_study]
- * @property {string} [start_date]  ISO date string
- * @property {string} [end_date]    ISO date string, omit if currently enrolled
- * @property {boolean} [is_current]
- * @property {string} [grade]
- * @property {string} [description]
- */
 
-const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
+const unwrap = (response) => {
+    const body = response.data?.data ?? response.data;
 
-/**
- * Normalizes an axios error into a plain object the thunk's rejectWithValue
- * can pass straight to the slice ({ message } / { detail } shape).
- */
+    // Paginated list responses look like:
+    // { data: { pagination: {...}, results: [...] } }
+    // Plain create/update responses look like:
+    // { data: { id, degree, ... } }
+    if (body && typeof body === "object" && Array.isArray(body.results)) {
+        return body.results;
+    }
+
+    return body;
+};
+
 const normalizeApiError = (error) => {
     if (error.response?.data) {
-        return error.response.data;
+        throw error.response.data;
     }
-    return { message: error.message || "Network error. Please try again." };
+
+    throw {
+        detail: error.message || "Something went wrong.",
+    };
 };
 
 /**
- * Fetches all education entries for the current user/resume.
- * @returns {Promise<Education[]>}
+ * Validates a resume id and returns it as a clean number, or throws a
+ * clear error. Using this everywhere a resumeId is required means a
+ * missing/broken id is caught here — as a readable error — instead of
+ * silently becoming `NaN` in a request payload and failing on the server
+ * with a confusing 400.
  */
-export const getEducations = async () => {
+const requireResumeId = (resumeId) => {
+    const numericResumeId = Number(resumeId);
+
+    if (
+        resumeId === undefined ||
+        resumeId === null ||
+        resumeId === "" ||
+        Number.isNaN(numericResumeId)
+    ) {
+        throw { detail: "Resume ID is missing or invalid." };
+    }
+
+    return numericResumeId;
+};
+
+/*
+|--------------------------------------------------------------------------
+| GET
+|--------------------------------------------------------------------------
+*/
+
+export const getEducations = async (resumeId) => {
     try {
-        const response = await api.get("/educations/");
+        const validResumeId = requireResumeId(resumeId);
+
+        const response = await api.get("/educations/", {
+            params: { resume: validResumeId },
+        });
+
         return unwrap(response);
     } catch (error) {
-        throw normalizeApiError(error);
+        normalizeApiError(error);
     }
 };
 
-/**
- * Creates a new education entry.
- * @param {Education} educationData
- * @returns {Promise<Education>}
- */
-export const createEducation = async (educationData) => {
+/*
+|--------------------------------------------------------------------------
+| CREATE
+|--------------------------------------------------------------------------
+*/
+
+export const createEducation = async (resumeId, educationData) => {
     try {
-        console.log(educationData)
-        const response = await api.post("/educations/", educationData);
+        const validResumeId = requireResumeId(resumeId);
+
+        const payload = {
+            ...educationData,
+            resume: validResumeId,
+        };
+
+        const response = await api.post("/educations/", payload);
+
         return unwrap(response);
     } catch (error) {
-        throw normalizeApiError(error);
+        normalizeApiError(error);
     }
 };
 
-/**
- * Partially updates an existing education entry.
- * @param {string} id
- * @param {Partial<Education>} educationData
- * @returns {Promise<Education>}
- */
-export const updateEducation = async (id, educationData) => {
+/*
+|--------------------------------------------------------------------------
+| UPDATE
+|--------------------------------------------------------------------------
+*/
+
+export const updateEducation = async (id, resumeId, educationData) => {
     try {
-        const response = await api.patch(`/educations/${id}/`, educationData);
+        const validResumeId = requireResumeId(resumeId);
+
+        const payload = {
+            ...educationData,
+            resume: validResumeId,
+        };
+
+        const response = await api.patch(`/educations/${id}/`, payload);
+
         return unwrap(response);
     } catch (error) {
-        throw normalizeApiError(error);
+        normalizeApiError(error);
     }
 };
 
-/**
- * Deletes an education entry.
- * @param {string} id
- * @returns {Promise<string>} the deleted entry's id, for removing it from state
- */
+/*
+|--------------------------------------------------------------------------
+| DELETE
+|--------------------------------------------------------------------------
+*/
+
 export const deleteEducation = async (id) => {
     try {
         await api.delete(`/educations/${id}/`);
         return id;
     } catch (error) {
-        throw normalizeApiError(error);
+        normalizeApiError(error);
     }
 };

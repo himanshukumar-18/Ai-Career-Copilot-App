@@ -9,16 +9,17 @@ import {
 } from "./educationService";
 
 /**
- * Fetches all education entries.
+ * Fetches all education entries for a resume.
+ * @param {string|number} resumeId
  */
 export const getEducationsThunk = createAsyncThunk(
     "education/getAll",
-    async (_, { rejectWithValue }) => {
+    async (resumeId, { rejectWithValue }) => {
         try {
-            return await getEducations();
+            return await getEducations(resumeId);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data ?? { message: error.message }
+                error.response?.data ?? error ?? { message: error.message }
             );
         }
     }
@@ -26,16 +27,16 @@ export const getEducationsThunk = createAsyncThunk(
 
 /**
  * Creates a new education entry.
- * @param {Object} educationData
+ * @param {{ resumeId: string|number, educationData: Object }} payload
  */
 export const createEducationThunk = createAsyncThunk(
     "education/create",
-    async (educationData, { rejectWithValue }) => {
+    async ({ resumeId, educationData }, { rejectWithValue }) => {
         try {
-            return await createEducation(educationData);
+            return await createEducation(resumeId, educationData);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data ?? { message: error.message }
+                error.response?.data ?? error ?? { message: error.message }
             );
         }
     }
@@ -43,16 +44,16 @@ export const createEducationThunk = createAsyncThunk(
 
 /**
  * Updates an existing education entry.
- * @param {{ id: string, educationData: Object }} payload
+ * @param {{ id: string, resumeId: string|number, educationData: Object }} payload
  */
 export const updateEducationThunk = createAsyncThunk(
     "education/update",
-    async ({ id, educationData }, { rejectWithValue }) => {
+    async ({ id, resumeId, educationData }, { rejectWithValue }) => {
         try {
-            return await updateEducation(id, educationData);
+            return await updateEducation(id, resumeId, educationData);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data ?? { message: error.message }
+                error.response?.data ?? error ?? { message: error.message }
             );
         }
     }
@@ -70,7 +71,7 @@ export const deleteEducationThunk = createAsyncThunk(
             return await deleteEducation(id);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data ?? { message: error.message }
+                error.response?.data ?? error ?? { message: error.message }
             );
         }
     }

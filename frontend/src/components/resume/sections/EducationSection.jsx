@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GraduationCap, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ const EMPTY_EDUCATION = {
     location: "",
     start_date: "",
     end_date: "",
-    is_current: false,
+    currently_studying: false,
     grade: "",
     description: "",
 };
@@ -52,6 +53,7 @@ const toFormValues = (items) => ({
 
 const EducationSection = () => {
     const dispatch = useDispatch();
+    const { resumeId } = useParams();
 
     const items = useSelector(selectEducationList);
     const isLoading = useSelector(selectIsEducationLoading);
@@ -80,8 +82,10 @@ const EducationSection = () => {
 
     // Fetch education entries on mount.
     useEffect(() => {
-        dispatch(getEducationsThunk());
-    }, [dispatch]);
+        if (resumeId) {
+            dispatch(getEducationsThunk(resumeId));
+        }
+    }, [dispatch, resumeId]);
 
     // Sync fetched entries into the form once available.
     useEffect(() => {
@@ -115,20 +119,45 @@ const EducationSection = () => {
         const rowData = getValues(`educations.${index}`);
         const { id, ...educationData } = rowData;
 
+        // Guard: never let a missing/invalid resumeId reach the API.
+        const numericResumeId = Number(resumeId);
+
+        if (!resumeId || Number.isNaN(numericResumeId)) {
+            toast.error(
+                "Resume ID is missing or invalid. Please reload the page."
+            );
+            return;
+        }
+
         try {
             if (id) {
                 await dispatch(
-                    updateEducationThunk({ id, educationData })
+                    updateEducationThunk({
+                        id,
+                        resumeId: numericResumeId,
+                        educationData,
+                    })
                 ).unwrap();
             } else {
-                await dispatch(createEducationThunk(educationData)).unwrap();
+                await dispatch(
+                    createEducationThunk({
+                        resumeId: numericResumeId,
+                        educationData,
+                    })
+                ).unwrap();
             }
         } catch {
             // Error toast handled by the effect above once mutateFailed flips.
         }
     };
 
-    const handleRemoveRow = async (index, rowId) => {
+    const handleRemoveRow = async (index) => {
+        // field.id (react-hook-form's useFieldArray key) is NOT the same
+        // as the real database id — it's an internal UUID used only for
+        // React's key prop. The actual saved record's id lives in the
+        // form values themselves.
+        const rowId = getValues(`educations.${index}.id`);
+
         if (rowId) {
             try {
                 await dispatch(deleteEducationThunk(rowId)).unwrap();
@@ -204,14 +233,11 @@ const EducationSection = () => {
                                     index={index}
                                     rowId={field.id}
                                     register={register}
-                                    control={control}
                                     errors={errors}
                                     watch={watch}
                                     isMutating={isMutating}
                                     onSave={() => handleSaveRow(index)}
-                                    onRemove={() =>
-                                        handleRemoveRow(index, field.id)
-                                    }
+                                    onRemove={() => handleRemoveRow(index)}
                                 />
                             ))
                         )}
@@ -225,7 +251,6 @@ const EducationSection = () => {
 /** A single education entry: its fields, save, and remove controls. */
 const EducationRow = ({
     index,
-    control,
     register,
     errors,
     watch,
@@ -233,7 +258,7 @@ const EducationRow = ({
     onSave,
     onRemove,
 }) => {
-    const isCurrent = watch(`educations.${index}.is_current`);
+    const isCurrent = watch(`educations.${index}.currently_studying`);
     const rowErrors = errors.educations?.[index] ?? {};
 
     return (
@@ -296,16 +321,9 @@ const EducationRow = ({
                 </Field>
 
                 <div className="flex items-end gap-3 pb-1">
-                    <Controller
-                        name={`educations.${index}.is_current`}
-                        control={control}
-                        render={({ field }) => (
-                            <Checkbox
-                                id={`current-${index}`}
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                        )}
+                    <Checkbox
+                        id={`current-${index}`}
+                        {...register(`educations.${index}.currently_studying`)}
                     />
                     <Label htmlFor={`current-${index}`}>
                         Currently studying here

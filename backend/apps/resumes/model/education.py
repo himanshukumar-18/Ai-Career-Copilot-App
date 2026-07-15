@@ -38,6 +38,12 @@ class Education(models.Model):
         max_length=255,
     )
 
+    location = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+    )
+
     grade = models.CharField(
         max_length=50,
         blank=True,
