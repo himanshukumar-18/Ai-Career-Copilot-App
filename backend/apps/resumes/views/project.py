@@ -22,19 +22,25 @@ class ProjectViewSet(BaseResumeViewSet):
     )
     def reorder(self, request):
 
+        # .get(...) instead of request.data["..."] — a missing key here
+        # used to raise an unhandled KeyError -> 500, the same failure
+        # mode already fixed in ExperienceViewSet.reorder.
+        resume_id = request.data.get("resume")
+        ordered_ids = request.data.get("ordered_ids", [])
+
         resume = ResumeService.get_resume_by_id(
             request.user,
-            request.data["resume"],
+            resume_id,
         )
 
         ProjectService.reorder(
             resume,
-            request.data["ordered_ids"],
+            ordered_ids,
         )
 
         return ApiResponse.success(
-            request = request,
-            message = "Projects reordered successfully.",
+            request=request,
+            message="Projects reordered successfully.",
         )
 
     @action(
