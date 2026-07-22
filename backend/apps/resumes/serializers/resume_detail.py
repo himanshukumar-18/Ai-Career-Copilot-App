@@ -13,6 +13,7 @@ from .achievement import AchievementSerializer
 from .reference import ReferenceSerializer
 from .social_link import SocialLinkSerializer
 from .custom_section import CustomSectionSerializer
+from .summary import ResumeSummarySerializer
 
 
 class ResumeDetailSerializer(
@@ -22,6 +23,8 @@ class ResumeDetailSerializer(
     profile = ResumeProfileSerializer(
         read_only=True,
     )
+
+    summary = ResumeSummarySerializer(read_only=True)
 
     educations = EducationSerializer(
         many=True,
@@ -102,6 +105,8 @@ class ResumeDetailSerializer(
             "updated_at",
 
             "profile",
+
+            "summary",
 
             "educations",
 

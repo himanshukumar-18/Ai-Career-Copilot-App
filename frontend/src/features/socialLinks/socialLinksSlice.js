@@ -11,7 +11,7 @@ const extractErrorMessage = (payload, fallback) => {
 };
 
 const initialState = {
-    data: null,
+    data: [],
     fetchStatus: "idle",
     saveStatus: "idle",
     error: null,
@@ -26,7 +26,7 @@ const socialLinksSlice = createSlice({
             state.error = null;
         },
         clearSocialLinks(state) {
-            state.data = null;
+            state.data = [];
             state.fetchStatus = "idle";
             state.saveStatus = "idle";
             state.error = null;
@@ -40,7 +40,7 @@ const socialLinksSlice = createSlice({
             })
             .addCase(getSocialLinksThunk.fulfilled, (state, { payload }) => {
                 state.fetchStatus = "succeeded";
-                state.data = payload ?? null;
+                state.data = payload ?? [];
             })
             .addCase(getSocialLinksThunk.rejected, (state, { payload }) => {
                 state.fetchStatus = "failed";

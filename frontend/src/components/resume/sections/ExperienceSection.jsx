@@ -209,10 +209,6 @@ const ExperienceSection = () => {
             <div className="border border-zinc-800 bg-zinc-950">
                 <header className="flex flex-col gap-4 border-b border-zinc-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-black text-zinc-400">
-                            <BriefcaseBusiness size={15} />
-                        </span>
-
                         <div>
                             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                                 Resume section

@@ -8,9 +8,9 @@ import {
 
 export const getLanguagesThunk = createAsyncThunk(
     "language/getAll",
-    async (_, { rejectWithValue }) => {
+    async (resumeId, { rejectWithValue }) => {
         try {
-            return await getLanguages();
+            return await getLanguages(resumeId);
         } catch (error) {
             return rejectWithValue(
                 error.response?.data ?? { message: error.message }
@@ -21,9 +21,9 @@ export const getLanguagesThunk = createAsyncThunk(
 
 export const createLanguageThunk = createAsyncThunk(
     "language/create",
-    async (languageData, { rejectWithValue }) => {
+    async ({ resumeId, languageData }, { rejectWithValue }) => {
         try {
-            return await createLanguage(languageData);
+            return await createLanguage(resumeId, languageData);
         } catch (error) {
             return rejectWithValue(
                 error.response?.data ?? { message: error.message }

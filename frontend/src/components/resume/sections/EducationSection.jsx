@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -190,10 +190,6 @@ const EducationSection = () => {
                 {/* Header */}
                 <header className="flex flex-col gap-4 border-b border-zinc-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex items-start gap-3">
-                        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-black text-zinc-400">
-                            <GraduationCap size={15} />
-                        </span>
-
                         <div>
                             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                                 Resume section
@@ -223,7 +219,7 @@ const EducationSection = () => {
 
                 {/* Body */}
                 <div className="space-y-5 p-5 sm:p-6">
-                    <AnimatePresence initial={false}>
+                    <div>
                         {fields.length === 0 ? (
                             <EmptyState onAdd={handleAddEducation} />
                         ) : (
@@ -241,7 +237,7 @@ const EducationSection = () => {
                                 />
                             ))
                         )}
-                    </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </motion.section>

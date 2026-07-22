@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FolderGit2, Globe, Plus, Trash2, } from "lucide-react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -219,10 +219,9 @@ const ProjectsSection = () => {
                             <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
                                 Resume Section
                             </p>
-                            <div className="mt-1 flex items-center gap-2">
-                                <FolderGit2 size={20} className="text-fuchsia-400" />
-                                <h2 className="text-xl font-bold text-white">Projects</h2>
-                            </div>
+                            <h2 className="mt-1 text-xl font-semibold text-white">
+                                Projects
+                            </h2>
                             <p className="mt-1 text-sm text-zinc-500">
                                 Showcase your portfolio projects with your role, impact, and technology.
                             </p>
@@ -238,7 +237,7 @@ const ProjectsSection = () => {
 
                 {/* ── Body ─────────────────────────────────────────────── */}
                 <div className="space-y-4 p-8">
-                    <AnimatePresence>
+                    <div>
                         {fields.length === 0 ? (
                             <EmptyState onAdd={() => append(EMPTY_PROJECT)} />
                         ) : (
@@ -255,7 +254,7 @@ const ProjectsSection = () => {
                                 />
                             ))
                         )}
-                    </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </motion.section>

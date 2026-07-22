@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -29,7 +29,7 @@ import {
 
 const EMPTY_CERTIFICATION = {
     name: "",
-    issuer: "",
+    issuing_organization: "",
     issue_date: "",
     expiry_date: "",
     credential_id: "",
@@ -69,11 +69,12 @@ const CertificationsSection = () => {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "certifications",
+        keyName: "fieldId",
     });
 
     const { registerSaveAction } = useResumeEditorSection();
 
-    const onSubmit = async (data) => {
+    const onSubmit = useCallback(async (data) => {
         try {
             await dispatch(
                 updateCertificationsThunk({
@@ -85,7 +86,7 @@ const CertificationsSection = () => {
         } catch {
             // Error toast handled by the effect above once saveFailed flips.
         }
-    };
+    }, [dispatch, resumeId]);
 
     useEffect(() => {
         const unregister = registerSaveAction("certifications", handleSubmit(onSubmit));
@@ -132,14 +133,16 @@ const CertificationsSection = () => {
         <motion.section
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-zinc-800 bg-zinc-950"
+            className="border border-zinc-800 bg-zinc-950"
         >
             {/* Header */}
             <div className="border-b border-zinc-800 px-8 py-6">
                 <div className="flex items-center gap-3">
-                    <Award className="text-yellow-500" size={24} />
                     <div>
-                        <h2 className="text-2xl font-bold text-white">
+                        <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Resume section
+                            </p>
+                        <h2 className="text-2xl mt-1 font-bold text-white">
                             Certifications
                         </h2>
                         <p className="mt-1 text-sm text-zinc-400">
@@ -155,15 +158,15 @@ const CertificationsSection = () => {
                     {fields.length === 0 ? (
                         <EmptyState onAdd={handleAddCertification} />
                     ) : (
-                        <AnimatePresence>
+                        <div>
                             {fields.map((field, index) => (
                                 <motion.div
-                                    key={field.id}
+                                    key={field.fieldId}
                                     layout
                                     initial={{ opacity: 0, y: 15 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+                                    className="border border-zinc-800 bg-zinc-900 p-6"
                                 >
                                     <div className="grid gap-6 md:grid-cols-2">
                                         <Field
@@ -179,14 +182,14 @@ const CertificationsSection = () => {
                                         </Field>
 
                                         <Field
-                                            id={`cert-${index}-issuer`}
+                                            id={`cert-${index}-issuing-organization`}
                                             label="Issuing Organization"
-                                            error={errors.certifications?.[index]?.issuer}
+                                            error={errors.certifications?.[index]?.issuing_organization}
                                         >
                                             <Input
-                                                id={`cert-${index}-issuer`}
+                                                id={`cert-${index}-issuing-organization`}
                                                 placeholder="Amazon Web Services"
-                                                {...register(`certifications.${index}.issuer`)}
+                                                {...register(`certifications.${index}.issuing_organization`)}
                                             />
                                         </Field>
 
@@ -258,7 +261,7 @@ const CertificationsSection = () => {
                                     </div>
                                 </motion.div>
                             ))}
-                        </AnimatePresence>
+                        </div>
                     )}
 
                     <Button

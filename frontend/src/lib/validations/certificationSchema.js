@@ -8,7 +8,7 @@ export const certificationSchema = z.object({
         .trim()
         .min(3, "Certification name is required."),
 
-    issuer: z
+    issuing_organization: z
         .string()
         .trim()
         .min(2, "Issuing organization is required."),

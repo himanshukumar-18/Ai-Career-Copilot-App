@@ -1,16 +1,16 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Globe, Plus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useParams } from "react-router-dom";
 
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
 import Label from "../../ui/Label";
 import Select from "../../ui/Select";
-import Checkbox from "../../ui/Checkbox";
 
 import { languagesFormSchema } from "../../../lib/validations/languageSchema";
 import {
@@ -32,18 +32,13 @@ import {
 const EMPTY_LANGUAGE = {
     name: "",
     proficiency: "",
-    reading: false,
-    writing: false,
-    speaking: false,
 };
 
 const PROFICIENCY_OPTIONS = [
-    "Beginner",
-    "Elementary",
-    "Intermediate",
-    "Upper Intermediate",
-    "Advanced",
-    "Native / Bilingual",
+    { value: "beginner", label: "Beginner" },
+    { value: "intermediate", label: "Intermediate" },
+    { value: "professional", label: "Professional" },
+    { value: "native", label: "Native / Bilingual" },
 ];
 
 const toFormValues = (items) => ({
@@ -55,6 +50,7 @@ const toFormValues = (items) => ({
 
 const LanguagesSection = () => {
     const dispatch = useDispatch();
+    const { resumeId } = useParams();
 
     const languages = useSelector(selectLanguageList);
     const isLoading = useSelector(selectIsLanguageLoading);
@@ -78,11 +74,12 @@ const LanguagesSection = () => {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "languages",
+        keyName: "fieldId",
     });
 
     useEffect(() => {
-        dispatch(getLanguagesThunk());
-    }, [dispatch]);
+        if (resumeId) dispatch(getLanguagesThunk(resumeId));
+    }, [dispatch, resumeId]);
 
     useEffect(() => {
         reset(toFormValues(languages));
@@ -117,7 +114,7 @@ const LanguagesSection = () => {
                     updateLanguageThunk({ id, languageData })
                 ).unwrap();
             } else {
-                await dispatch(createLanguageThunk(languageData)).unwrap();
+                await dispatch(createLanguageThunk({ resumeId, languageData })).unwrap();
             }
         } catch {
             // Toast handled by the mutation status effect.
@@ -152,12 +149,15 @@ const LanguagesSection = () => {
             transition={{ duration: 0.3 }}
             className="w-full"
         >
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
+            <div className="border border-zinc-800 bg-zinc-950 shadow-xl">
                 <div className="border-b border-zinc-800 px-8 py-6">
                     <div className="flex items-center gap-3">
-                        <Globe size={26} className="text-emerald-400" />
+
                         <div>
-                            <h2 className="text-2xl font-bold text-white">Languages</h2>
+                            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                Resume section
+                            </p>
+                            <h2 className="text-2xl mt-1 font-bold text-white">Languages</h2>
                             <p className="mt-1 text-sm text-zinc-400">
                                 Showcase the languages you can communicate in professionally.
                             </p>
@@ -166,13 +166,13 @@ const LanguagesSection = () => {
                 </div>
 
                 <div className="space-y-6 p-8">
-                    <AnimatePresence>
+                    <div>
                         {fields.length === 0 ? (
                             <EmptyState onAdd={handleAddLanguage} />
                         ) : (
                             fields.map((field, index) => (
                                 <LanguageRow
-                                    key={field.id}
+                                    key={field.fieldId}
                                     index={index}
                                     rowId={field.id}
                                     register={register}
@@ -183,7 +183,7 @@ const LanguagesSection = () => {
                                 />
                             ))
                         )}
-                    </AnimatePresence>
+                    </div>
 
                     <motion.div whileTap={{ scale: 0.98 }}>
                         <Button
@@ -219,7 +219,7 @@ const LanguageRow = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+            className="border border-zinc-800 bg-zinc-900 p-6"
         >
             <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
                 <div className="space-y-6">
@@ -241,50 +241,17 @@ const LanguageRow = ({
                                 Select proficiency
                             </option>
                             {PROFICIENCY_OPTIONS.map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
                                 </option>
                             ))}
                         </Select>
                     </Field>
                 </div>
 
-                <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">
-                        Abilities
-                    </p>
-
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3">
-                            <Checkbox
-                                id={`language-${index}-reading`}
-                                {...register(`languages.${index}.reading`)}
-                            />
-                            <Label htmlFor={`language-${index}-reading`} className="mb-0 text-sm text-zinc-300">
-                                Reading
-                            </Label>
-                        </div>
-
-                        <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3">
-                            <Checkbox
-                                id={`language-${index}-writing`}
-                                {...register(`languages.${index}.writing`)}
-                            />
-                            <Label htmlFor={`language-${index}-writing`} className="mb-0 text-sm text-zinc-300">
-                                Writing
-                            </Label>
-                        </div>
-
-                        <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3">
-                            <Checkbox
-                                id={`language-${index}-speaking`}
-                                {...register(`languages.${index}.speaking`)}
-                            />
-                            <Label htmlFor={`language-${index}-speaking`} className="mb-0 text-sm text-zinc-300">
-                                Speaking
-                            </Label>
-                        </div>
-                    </div>
+                <div className="border border-zinc-800 bg-zinc-950 p-4 text-sm leading-6 text-zinc-400">
+                    Select the level that best represents your professional
+                    working proficiency.
                 </div>
             </div>
 
@@ -323,7 +290,7 @@ const EmptyState = ({ onAdd }) => (
     <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="mx-auto max-w-xl rounded-xl border border-dashed border-zinc-700 bg-zinc-900/80 p-14 text-center"
+        className="mx-auto max-w-xl border border-dashed border-zinc-700 bg-zinc-900/80 p-14 text-center"
     >
         <Globe size={48} className="mx-auto text-zinc-600" />
         <h3 className="mt-5 text-xl font-semibold text-white">No Languages Added</h3>

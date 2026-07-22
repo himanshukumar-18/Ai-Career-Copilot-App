@@ -20,10 +20,18 @@ class BaseResumeViewSet(
     service = None
 
     def get_queryset(self):
-
-        return self.model.objects.filter(
+        queryset = self.model.objects.filter(
             resume__user=self.request.user
-        ).order_by(
+        )
+
+        # Child resources are always owned by a resume.  Honour the optional
+        # resume filter used by the editor so records from another resume are
+        # never shown while editing the current one.
+        resume_id = self.request.query_params.get("resume")
+        if resume_id:
+            queryset = queryset.filter(resume_id=resume_id)
+
+        return queryset.order_by(
             "display_order"
         )
 

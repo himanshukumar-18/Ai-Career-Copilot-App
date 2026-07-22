@@ -59,23 +59,18 @@ const ResumeEditor = () => {
     if (!resume) return [];
 
     const completed = [];
-    if (resume.summary) completed.push("summary");
+    if (resume.summary?.content || resume.summary) completed.push("summary");
     if (resume.experiences?.length) completed.push("experience");
-    if (resume.education?.length) completed.push("education");
+    if (resume.education?.length || resume.educations?.length) completed.push("education");
     if (resume.skills?.length) completed.push("skills");
     if (resume.projects?.length) completed.push("projects");
     if (resume.certifications?.length) completed.push("certifications");
     if (resume.languages?.length) completed.push("languages");
-    if (
-      resume.website ||
-      resume.portfolio ||
-      resume.linkedin ||
-      resume.github
-    ) {
+    if (resume.social_links?.length) {
       completed.push("social");
     }
 
-    if (resume.first_name || resume.last_name || resume.email) {
+    if (resume.profile?.first_name || resume.profile?.last_name || resume.profile?.email) {
       completed.push("personal");
     }
 

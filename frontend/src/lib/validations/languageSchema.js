@@ -11,9 +11,6 @@ export const languageSchema = z.object({
         .trim()
         .min(1, "Proficiency level is required."),
 
-    reading: z.boolean(),
-    writing: z.boolean(),
-    speaking: z.boolean(),
 });
 
 export const languagesFormSchema = z.object({

@@ -1,6 +1,9 @@
 import api from "@/api/axios";
 
-const unwrap = (response) => response.data?.data ?? response.data?.results ?? response.data;
+const unwrap = (response) => {
+    const body = response.data?.data ?? response.data;
+    return Array.isArray(body?.results) ? body.results : body;
+};
 
 const normalizeApiError = (error) => {
     if (error.response?.data) {
@@ -9,18 +12,18 @@ const normalizeApiError = (error) => {
     return { message: error.message || "Network error. Please try again." };
 };
 
-export const getLanguages = async () => {
+export const getLanguages = async (resumeId) => {
     try {
-        const response = await api.get("/languages/");
+        const response = await api.get("/languages/", { params: { resume: resumeId } });
         return unwrap(response);
     } catch (error) {
         throw normalizeApiError(error);
     }
 };
 
-export const createLanguage = async (languageData) => {
+export const createLanguage = async (resumeId, languageData) => {
     try {
-        const response = await api.post("/languages/", languageData);
+        const response = await api.post("/languages/", { ...languageData, resume: resumeId });
         return unwrap(response);
     } catch (error) {
         throw normalizeApiError(error);

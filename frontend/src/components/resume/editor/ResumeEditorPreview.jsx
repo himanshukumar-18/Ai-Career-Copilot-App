@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FileText, Mail, MapPin, Phone } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const getArray = (value) => (Array.isArray(value) ? value : []);
 
@@ -17,7 +18,13 @@ const PreviewSection = ({ title, children }) => {
 };
 
 const ResumeEditorPreview = ({ resume }) => {
-    const profile = resume?.profile || resume?.resume_profile || {};
+    const liveProfile = useSelector((state) => state.resumeProfile.profile);
+    const liveSummary = useSelector((state) => state.summary.summary);
+    const certificationState = useSelector((state) => state.resumeCertifications);
+    const languageState = useSelector((state) => state.language);
+    const socialLinkState = useSelector((state) => state.socialLinks);
+
+    const profile = liveProfile || resume?.profile || resume?.resume_profile || {};
     const personal = resume?.personal || profile?.personal || profile || {};
 
     const firstName = personal?.first_name || personal?.firstName || "";
@@ -40,17 +47,25 @@ const ResumeEditorPreview = ({ resume }) => {
     const location =
         personal?.location || personal?.city || personal?.address || "";
 
+    const socialLinks = socialLinkState.fetchStatus === "succeeded"
+        ? getArray(socialLinkState.data)
+        : getArray(resume?.social_links || profile?.social_links);
+    const primaryLink = socialLinks.find((link) => link?.url)?.url || "";
     const website =
+        primaryLink ||
         personal?.website ||
         personal?.portfolio_url ||
         personal?.linkedin_url ||
         "";
 
-    const summary =
-        personal?.summary ||
-        resume?.summary ||
-        resume?.professional_summary ||
-        "";
+    const summary = personal?.summary || (
+        liveSummary
+            ? liveSummary.content
+            : resume?.summary?.content ||
+            resume?.summary ||
+            resume?.professional_summary ||
+            ""
+    );
 
     const experiences = getArray(
         resume?.experiences || resume?.experience || profile?.experiences
@@ -64,11 +79,13 @@ const ResumeEditorPreview = ({ resume }) => {
 
     const projects = getArray(resume?.projects || profile?.projects);
 
-    const certifications = getArray(
-        resume?.certifications || profile?.certifications
-    );
+    const certifications = certificationState.fetchStatus === "succeeded"
+        ? getArray(certificationState.items)
+        : getArray(resume?.certifications || profile?.certifications);
 
-    const languages = getArray(resume?.languages || profile?.languages);
+    const languages = languageState.fetchStatus === "succeeded"
+        ? getArray(languageState.items)
+        : getArray(resume?.languages || profile?.languages);
 
     const hasResumeContent =
         firstName ||
@@ -80,7 +97,10 @@ const ResumeEditorPreview = ({ resume }) => {
         experiences.length > 0 ||
         education.length > 0 ||
         skills.length > 0 ||
-        projects.length > 0;
+        projects.length > 0 ||
+        certifications.length > 0 ||
+        languages.length > 0 ||
+        socialLinks.length > 0;
 
     return (
         <motion.aside
@@ -93,7 +113,7 @@ const ResumeEditorPreview = ({ resume }) => {
                 Live Preview
             </p>
 
-            <div className="max-h-[calc(100vh-170px)] overflow-y-auto border border-zinc-800 bg-zinc-950 px-5 py-6 sm:px-6">
+            <div className="scrollbar-hide max-h-[calc(100vh-170px)] overflow-y-auto border border-zinc-800 bg-zinc-950 px-5 py-6 sm:px-6">
                 {!hasResumeContent ? (
                     <div className="flex min-h-[300px] flex-col items-center justify-center px-4 text-center">
                         <FileText
@@ -420,6 +440,32 @@ const ResumeEditorPreview = ({ resume }) => {
                                                     ? ` · ${proficiency}`
                                                     : ""}
                                             </p>
+                                        );
+                                    })}
+                                </div>
+                            </PreviewSection>
+                        )}
+
+                        {socialLinks.length > 0 && (
+                            <PreviewSection title="Links">
+                                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                    {socialLinks.map((link, index) => {
+                                        const label =
+                                            link?.platform === "other"
+                                                ? link?.custom_platform || "Website"
+                                                : link?.platform || "Link";
+                                        if (!link?.url) return null;
+
+                                        return (
+                                            <a
+                                                key={link?.id || `${label}-${index}`}
+                                                href={link.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-[10px] capitalize text-sky-400 hover:underline"
+                                            >
+                                                {label}
+                                            </a>
                                         );
                                     })}
                                 </div>

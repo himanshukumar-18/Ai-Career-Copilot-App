@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Loader2, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -140,10 +140,6 @@ const SummarySection = () => {
                 <div className="border border-zinc-800 bg-zinc-950">
                     <header className="flex flex-col gap-4 border-b border-zinc-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                         <div className="flex items-start gap-3">
-                            <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center border border-zinc-800 bg-black text-zinc-400">
-                                <BookOpen size={15} aria-hidden="true" />
-                            </span>
-
                             <div>
                                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                                     Resume section

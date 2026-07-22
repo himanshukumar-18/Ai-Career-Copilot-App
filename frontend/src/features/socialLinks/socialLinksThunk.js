@@ -1,11 +1,16 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getSocialLinks, updateSocialLinks } from "./socialLinksService";
+import {
+    createSocialLink,
+    deleteSocialLink,
+    getSocialLinks,
+    updateSocialLink,
+} from "./socialLinksService";
 
 export const getSocialLinksThunk = createAsyncThunk(
     "socialLinks/get",
-    async (_, { rejectWithValue }) => {
+    async (resumeId, { rejectWithValue }) => {
         try {
-            return await getSocialLinks();
+            return await getSocialLinks(resumeId);
         } catch (error) {
             return rejectWithValue(error.response?.data ?? { message: error.message });
         }
@@ -14,9 +19,30 @@ export const getSocialLinksThunk = createAsyncThunk(
 
 export const updateSocialLinksThunk = createAsyncThunk(
     "socialLinks/update",
-    async ({ id, linksData }, { rejectWithValue }) => {
+    async ({ resumeId, links }, { rejectWithValue }) => {
         try {
-            return await updateSocialLinks(id, linksData);
+            const existing = await getSocialLinks(resumeId);
+            const submittedIds = new Set(links.filter((link) => link.id).map((link) => link.id));
+            const clean = (link) => {
+                const payload = { ...link };
+                ["id", "resume", "created_at", "updated_at"].forEach(
+                    (key) => delete payload[key]
+                );
+                return payload;
+            };
+
+            await Promise.all([
+                ...links.map((link) =>
+                    link.id
+                        ? updateSocialLink(link.id, clean(link))
+                        : createSocialLink(resumeId, clean(link))
+                ),
+                ...existing
+                    .filter((link) => !submittedIds.has(link.id))
+                    .map((link) => deleteSocialLink(link.id)),
+            ]);
+
+            return await getSocialLinks(resumeId);
         } catch (error) {
             return rejectWithValue(error.response?.data ?? { message: error.message });
         }

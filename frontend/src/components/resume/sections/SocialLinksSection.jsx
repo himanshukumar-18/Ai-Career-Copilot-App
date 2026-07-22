@@ -1,16 +1,28 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 // import { Globe, Linkedin, GitHub, Link } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useResumeEditorSection } from "../editor/ResumeEditorContext";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
 import Label from "../../ui/Label";
 
 import { socialLinksFormSchema } from "../../../lib/validations/socialLinksSchema";
+import {
+    getSocialLinksThunk,
+    updateSocialLinksThunk,
+} from "../../../features/socialLinks/socialLinksThunk";
+import {
+    selectIsSocialLinksLoading,
+    selectIsSocialLinksSaving,
+    selectSocialLinks,
+    selectSocialLinksError,
+} from "../../../features/socialLinks/socialLinksSelectors";
 
 const DEFAULT_LINKS = {
     website: "",
@@ -19,14 +31,27 @@ const DEFAULT_LINKS = {
     github: "",
 };
 
-const toFormValues = (resume) => ({
-    website: resume?.website ?? "",
-    portfolio: resume?.portfolio ?? "",
-    linkedin: resume?.linkedin ?? "",
-    github: resume?.github ?? "",
-});
+const toFormValues = (links = []) => {
+    const find = (platform) => links.find((link) => link.platform === platform);
+    const website = links.find(
+        (link) => link.platform === "other" && link.custom_platform?.toLowerCase() === "website"
+    );
 
-const SocialLinksSection = ({ resume }) => {
+    return {
+        website: website?.url ?? "",
+        portfolio: find("portfolio")?.url ?? "",
+        linkedin: find("linkedin")?.url ?? "",
+        github: find("github")?.url ?? "",
+    };
+};
+
+const SocialLinksSection = () => {
+    const dispatch = useDispatch();
+    const { resumeId } = useParams();
+    const links = useSelector(selectSocialLinks);
+    const isLoading = useSelector(selectIsSocialLinksLoading);
+    const isSaving = useSelector(selectIsSocialLinksSaving);
+    const apiError = useSelector(selectSocialLinksError);
     const {
         register,
         handleSubmit,
@@ -39,13 +64,47 @@ const SocialLinksSection = ({ resume }) => {
 
     const { registerSaveAction } = useResumeEditorSection();
 
-    const onSubmit = () => {
-        toast.success("Social links updated successfully.");
-    };
+    const onSubmit = useCallback(async (formData) => {
+        const managed = [
+            ["website", "other", "Website"],
+            ["portfolio", "portfolio", ""],
+            ["linkedin", "linkedin", ""],
+            ["github", "github", ""],
+        ];
+        const isWebsite = (link) =>
+            link.platform === "other" && link.custom_platform?.toLowerCase() === "website";
+        const findExisting = (platform) => links.find(
+            (link) => platform === "other" ? isWebsite(link) : link.platform === platform
+        );
+        const unchanged = links.filter(
+            (link) => !["portfolio", "linkedin", "github"].includes(link.platform) && !isWebsite(link)
+        );
+        const updates = managed.flatMap(([field, platform, custom_platform]) => {
+            const existing = findExisting(platform);
+            const url = formData[field]?.trim();
+            return url
+                ? [{ id: existing?.id, platform, custom_platform, url }]
+                : [];
+        });
+
+        try {
+            await dispatch(updateSocialLinksThunk({
+                resumeId,
+                links: [...updates, ...unchanged],
+            })).unwrap();
+            toast.success("Social links updated successfully.");
+        } catch (error) {
+            toast.error(error?.message || error?.detail || "Unable to save social links.");
+        }
+    }, [dispatch, links, resumeId]);
 
     useEffect(() => {
-        reset(toFormValues(resume ?? {}));
-    }, [resume, reset]);
+        if (resumeId) dispatch(getSocialLinksThunk(resumeId));
+    }, [dispatch, resumeId]);
+
+    useEffect(() => {
+        reset(toFormValues(links));
+    }, [links, reset]);
 
     useEffect(() => {
         const unregister = registerSaveAction("social", handleSubmit(onSubmit));
@@ -60,14 +119,14 @@ const SocialLinksSection = ({ resume }) => {
             className="w-full"
         >
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-950 shadow-xl">
+                <div className="border border-zinc-800 bg-zinc-950 shadow-xl">
                     <div className="border-b border-zinc-800 px-8 py-6">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10">
-                                {/* <Globe className="text-sky-400" size={24} /> */}
-                            </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-white">Social Links</h2>
+                                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+                                    Resume section
+                                </p>
+                                <h2 className="text-2xl mt-1 font-bold text-white">Social Links</h2>
                                 <p className="mt-1 text-sm text-zinc-400">
                                     Add your professional profile links for recruiters.
                                 </p>
@@ -127,11 +186,16 @@ const SocialLinksSection = ({ resume }) => {
 
                     <div className="flex justify-end border-t border-zinc-800 px-8 py-6">
                         <motion.div whileTap={{ scale: 0.98 }}>
-                            <Button type="submit" disabled={!isDirty}>
-                                Save Links
+                            <Button type="submit" disabled={isLoading || isSaving || !isDirty}>
+                                {isLoading || isSaving ? "Saving..." : "Save Links"}
                             </Button>
                         </motion.div>
                     </div>
+                    {apiError && (
+                        <p className="px-8 pb-6 text-sm text-red-400">
+                            {apiError}
+                        </p>
+                    )}
                 </div>
             </form>
         </motion.section>
