@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
 import {
     GoogleLogin
 } from "@react-oauth/google";
@@ -87,25 +88,35 @@ const Login = () => {
         navigate,
     ]);
 
+    // Show a toast whenever isError / isSuccess changes, then reset state
     useEffect(() => {
 
-        if (isError || isSuccess) {
+        if (isError) {
 
-            const timer = setTimeout(() => {
+            toast.error(
+                typeof message === "string"
+                    ? message
+                    : "Something went wrong"
+            );
 
-                dispatch(
-                    resetAuthState()
-                );
+            dispatch(resetAuthState());
 
-            }, 4000);
+        }
 
-            return () =>
-                clearTimeout(timer);
+        if (isSuccess) {
+
+            toast.success(
+                message || "Operation Successful"
+            );
+
+            dispatch(resetAuthState());
+
         }
 
     }, [
         isError,
         isSuccess,
+        message,
         dispatch,
     ]);
 
@@ -129,47 +140,6 @@ const Login = () => {
                 </p>
 
             </div>
-
-            {/* Error Message */}
-
-            {
-                isError && (
-                    <div
-                        className="
-                mt-5
-                border
-                border-red-500
-                p-3
-                text-sm
-                text-red-500
-            "
-                    >
-                        {
-                            typeof message === "string"
-                                ? message
-                                : "Something went wrong"
-                        }
-                    </div>
-                )
-            }
-
-            {
-                isSuccess && (
-                    <div
-                        className="
-                mt-5
-                border
-                border-green-500
-                p-3
-                text-sm
-                text-green-500
-            "
-                    >
-                        {message ||
-                            "Operation Successful"}
-                    </div>
-                )
-            }
 
             {/* Form */}
 
@@ -314,7 +284,7 @@ const Login = () => {
 
                         onError={() => {
 
-                            console.log(
+                            toast.error(
                                 "Google Login Failed"
                             );
 

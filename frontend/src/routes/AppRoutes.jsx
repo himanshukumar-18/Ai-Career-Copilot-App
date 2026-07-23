@@ -21,6 +21,8 @@ import Dashboard from "../pages/student/Dashboard";
 import Profile from "../pages/student/Profile";
 import Resume from "../pages/student/Resume";
 import ResumeEditor from "../pages/student/ResumeEditor";
+import ProjectLab from "../pages/student/ProjectLab";
+import Roadmap from "../pages/student/Roadmap";
 
 
 //page not found
@@ -76,6 +78,16 @@ const AppRoutes = () => {
                     <Route
                         path="/resume"
                         element={<Resume />}
+                    />
+
+                    <Route 
+                        path="/roadmap"
+                        element={<Roadmap />}
+                    />
+
+                    <Route 
+                        path="/project-lab"
+                        element={<ProjectLab />}
                     />
 
                 </Route>

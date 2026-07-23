@@ -7,7 +7,7 @@ import {
     X,
     LayoutDashboard,
     FileText,
-    Brain,
+    FolderGit2,
     Map,
     LogOut,
     Settings
@@ -62,9 +62,9 @@ const DashboardLayout = () => {
             icon: FileText,
         },
         {
-            name: "Skills",
-            path: "/skills",
-            icon: Brain,
+            name: "Project Lab",
+            path: "/project-lab",
+            icon: FolderGit2,
         },
         {
             name: "Career Roadmap",
@@ -439,7 +439,7 @@ const DashboardLayout = () => {
                     >
                         <Settings size={16} />
 
-                        Settings
+                        Profile
                     </Link>
 
                     <button

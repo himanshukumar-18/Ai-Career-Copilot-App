@@ -26,10 +26,10 @@ const Dashboard = () => {
             link: "/resume"
         },
         {
-            title: "Skills",
+            title: "Project Lab",
             description:
-                "Track and manage your technical skills.",
-            link: "/skills"
+                "Transform your knowledge into practical experience through hands-on development projects.",
+            link: "/project-lab"
         },
         {
             title: "AI Analysis",
