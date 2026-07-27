@@ -28,11 +28,10 @@ INSTALLED_APPS = [
 
     "apps.accounts",
     "apps.profiles",
-    "apps.skills",
     "apps.projects",
     "apps.resumes",
-    "apps.ai_engine",
     "apps.roadmaps",
+    "apps.resume_ai"
 ]
 
 MIDDLEWARE = [
@@ -212,3 +211,10 @@ Features
 }
 
 LOGGING = DJANGO_LOGGING
+
+GROQ_API_KEY = config("GROQ_API_KEY", default="")
+LLM_PROVIDER = config("LLM_PROVIDER", default="groq")
+LLM_MODEL = config(
+    "LLM_MODEL",
+    default="llama-3.3-70b-versatile",
+)

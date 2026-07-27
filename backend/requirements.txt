@@ -37,3 +37,5 @@ six==1.17.0
 sqlparse==0.5.5
 uritemplate==4.2.0
 urllib3==2.7.0
+groq>=0.31.0
+pydantic>=2.11
