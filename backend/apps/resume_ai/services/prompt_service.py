@@ -5,8 +5,7 @@ Prompt service for building AI-ready prompt strings from resume templates.
 from __future__ import annotations
 
 import logging
-from typing import Optional
-
+from apps.resume_ai.constants import ESTIMATED_CHARS_PER_TOKEN, MAX_PROMPT_CHARS
 from apps.resume_ai.exceptions import PromptBuildException
 from apps.resume_ai.prompts import (
     ATS_SYSTEM_PROMPT,
@@ -20,9 +19,7 @@ from apps.resume_ai.prompts import (
 logger = logging.getLogger(__name__)
 
 # Token estimation constants (~3 chars per token for rough estimation)
-CHARS_PER_TOKEN: int = 3
-MAX_PROMPT_TOKENS: int = 6000
-MAX_PROMPT_CHARS: int = MAX_PROMPT_TOKENS * CHARS_PER_TOKEN
+CHARS_PER_TOKEN: int = ESTIMATED_CHARS_PER_TOKEN
 
 
 class PromptService:
@@ -63,7 +60,10 @@ class PromptService:
                 "Cannot build analysis prompt: resume_text is empty."
             )
 
-        prompt = RESUME_ANALYSIS_PROMPT.format(resume=resume_text.strip())
+        try:
+            prompt = RESUME_ANALYSIS_PROMPT.format(resume=resume_text.strip())
+        except (KeyError, ValueError) as exc:
+            raise PromptBuildException("Resume analysis prompt template is invalid.") from exc
 
         estimated_tokens = PromptService.estimate_tokens(prompt)
         logger.debug(
@@ -73,10 +73,7 @@ class PromptService:
         )
 
         if len(prompt) > MAX_PROMPT_CHARS:
-            logger.warning(
-                "Resume analysis prompt exceeds recommended token limit: %d estimated tokens.",
-                estimated_tokens,
-            )
+            raise PromptBuildException("Resume content exceeds the configured AI context limit.")
 
         return prompt
 
@@ -102,7 +99,7 @@ class PromptService:
             prompt = SUMMARY_PROMPT.format(summary=summary.strip())
             logger.debug("Built summary improvement prompt | size=%d chars", len(prompt))
             return prompt
-        except KeyError as exc:
+        except (KeyError, ValueError) as exc:
             raise PromptBuildException(
                 f"Summary prompt template has a missing placeholder: {exc}"
             ) from exc
@@ -129,7 +126,7 @@ class PromptService:
             prompt = EXPERIENCE_PROMPT.format(experience=experience.strip())
             logger.debug("Built experience improvement prompt | size=%d chars", len(prompt))
             return prompt
-        except KeyError as exc:
+        except (KeyError, ValueError) as exc:
             raise PromptBuildException(
                 f"Experience prompt template has a missing placeholder: {exc}"
             ) from exc
@@ -156,7 +153,7 @@ class PromptService:
             prompt = PROJECT_PROMPT.format(project=project.strip())
             logger.debug("Built project improvement prompt | size=%d chars", len(prompt))
             return prompt
-        except KeyError as exc:
+        except (KeyError, ValueError) as exc:
             raise PromptBuildException(
                 f"Project prompt template has a missing placeholder: {exc}"
             ) from exc
@@ -183,7 +180,7 @@ class PromptService:
             prompt = SKILLS_PROMPT.format(skills=skills.strip())
             logger.debug("Built skills improvement prompt | size=%d chars", len(prompt))
             return prompt
-        except KeyError as exc:
+        except (KeyError, ValueError) as exc:
             raise PromptBuildException(
                 f"Skills prompt template has a missing placeholder: {exc}"
             ) from exc

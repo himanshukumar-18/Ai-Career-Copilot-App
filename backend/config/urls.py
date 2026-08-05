@@ -65,6 +65,14 @@ urlpatterns = [
         ),
         name="redoc",
     ),
+    
+    #resume-ai
+    path(
+        "api/v1/",
+        include(
+            "apps.resume_ai.urls"
+        )
+    )
 ]
 
 if settings.DEBUG:

@@ -7,12 +7,13 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
+from apps.resume_ai.constants import ANALYSIS_MAX_RESUME_CHARS
 from apps.resume_ai.exceptions import FormatterException
 
 logger = logging.getLogger(__name__)
 
 # Max character safety limit to protect LLM context window (~4000 tokens limit for prompt resume body)
-MAX_RESUME_CHAR_LIMIT = 16000
+MAX_RESUME_CHAR_LIMIT: int = ANALYSIS_MAX_RESUME_CHARS
 
 
 class FormatterService:
@@ -37,7 +38,9 @@ class FormatterService:
             FormatterException: If formatting fails unexpectedly.
         """
         if not isinstance(resume, dict):
-            raise FormatterException(f"Expected dict for resume data, got {type(resume).__name__}")
+            raise FormatterException("Parsed resume data must be a dictionary.")
+        if not isinstance(max_chars, int) or isinstance(max_chars, bool) or max_chars < 1:
+            raise FormatterException("max_chars must be a positive integer.")
 
         try:
             sections: List[str] = ["# Resume"]
@@ -85,10 +88,17 @@ class FormatterService:
                 )
                 markdown_text = markdown_text[:max_chars] + "\n\n... [Content Truncated For Token Safety]"
 
+            logger.info(
+                "Resume formatted | resume_id=%s | markdown_chars=%d",
+                resume.get("resume_id"),
+                len(markdown_text),
+            )
             return markdown_text
 
+        except FormatterException:
+            raise
         except Exception as exc:
-            logger.exception("Failed to format resume dictionary into Markdown.")
+            logger.exception("Failed to format resume | resume_id=%s", resume.get("resume_id"))
             raise FormatterException("Failed to format resume into Markdown.") from exc
 
     @staticmethod
@@ -118,6 +128,11 @@ class FormatterService:
         return "\n".join(lines) if len(lines) > 1 else ""
 
     @staticmethod
+    def _value(item: Dict[str, Any], key: str) -> str:
+        """Return a safely normalized mapping value for Markdown rendering."""
+        return str(item.get(key) or "").strip()
+
+    @staticmethod
     def _summary(summary: Optional[str]) -> str:
         """Formats professional summary into Markdown."""
         if not summary or not str(summary).strip():
@@ -135,12 +150,12 @@ class FormatterService:
         for exp in experiences:
             if not isinstance(exp, dict):
                 continue
-            position = exp.get("position", "").strip() or "Position Not Specified"
-            company = exp.get("company", "").strip() or "Company Not Specified"
-            emp_type = exp.get("employment_type", "").strip()
-            loc = exp.get("location", "").strip()
-            start = exp.get("start_date", "").strip()
-            end = exp.get("end_date", "").strip() or "Present"
+            position = FormatterService._value(exp, "position") or "Position Not Specified"
+            company = FormatterService._value(exp, "company") or "Company Not Specified"
+            emp_type = FormatterService._value(exp, "employment_type")
+            loc = FormatterService._value(exp, "location")
+            start = FormatterService._value(exp, "start_date")
+            end = FormatterService._value(exp, "end_date") or "Present"
 
             header = f"Position: {position} | Company: {company}"
             if emp_type:
@@ -155,7 +170,7 @@ class FormatterService:
             if details:
                 lines.append(" | ".join(details))
 
-            desc = exp.get("description", "").strip()
+            desc = FormatterService._value(exp, "description")
             if desc:
                 lines.append(f"\n{desc}")
 
@@ -171,10 +186,10 @@ class FormatterService:
         for edu in items:
             if not isinstance(edu, dict):
                 continue
-            inst = edu.get("institution", "").strip() or "Institution Not Specified"
-            degree = edu.get("degree", "").strip()
-            field = edu.get("field_of_study", "").strip()
-            grade = edu.get("grade", "").strip()
+            inst = FormatterService._value(edu, "institution") or "Institution Not Specified"
+            degree = FormatterService._value(edu, "degree")
+            field = FormatterService._value(edu, "field_of_study")
+            grade = FormatterService._value(edu, "grade")
 
             edu_line = f"- {degree} in {field}" if (degree and field) else f"- {degree or field or 'Degree'}"
             edu_line += f" at {inst}"
@@ -194,11 +209,11 @@ class FormatterService:
         for proj in projects:
             if not isinstance(proj, dict):
                 continue
-            title = proj.get("title", "").strip() or "Project Title"
-            techs = proj.get("technologies", "").strip()
-            desc = proj.get("description", "").strip()
-            github = proj.get("github_url", "").strip()
-            url = proj.get("project_url", "").strip()
+            title = FormatterService._value(proj, "title") or "Project Title"
+            techs = FormatterService._value(proj, "technologies")
+            desc = FormatterService._value(proj, "description")
+            github = FormatterService._value(proj, "github_url")
+            url = FormatterService._value(proj, "project_url")
 
             lines.append(f"\n### {title}")
             if techs:
@@ -237,8 +252,8 @@ class FormatterService:
         for lang in items:
             if not isinstance(lang, dict):
                 continue
-            name = lang.get("language", "").strip()
-            prof = lang.get("proficiency", "").strip()
+            name = FormatterService._value(lang, "language")
+            prof = FormatterService._value(lang, "proficiency")
             if name:
                 line = f"- {name}"
                 if prof:
@@ -257,8 +272,8 @@ class FormatterService:
         for cert in items:
             if not isinstance(cert, dict):
                 continue
-            title = cert.get("title", "").strip()
-            issuer = cert.get("issuer", "").strip()
+            title = FormatterService._value(cert, "title")
+            issuer = FormatterService._value(cert, "issuer")
             if title:
                 line = f"- {title}"
                 if issuer:

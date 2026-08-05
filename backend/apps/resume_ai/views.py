@@ -17,19 +17,19 @@ from rest_framework.views import APIView
 
 from config.responses import ApiResponse, ApiResponseMixin
 
-from apps.resumes.services import ResumeService
-
 from apps.resume_ai.exceptions import (
-    AIProviderException,
     AnalysisException,
+    ChainExecutionException,
     FormatterException,
+    LLMConfigurationException,
     ParserException,
-    PromptBuildException,
+    ProviderException,
     ResumeAIException,
     ValidationException,
 )
 from apps.resume_ai.serializers import ResumeAnalysisRequestSerializer
 from apps.resume_ai.services.analysis_service import AnalysisService
+from apps.resume_ai.services.parser_service import ParserService
 
 logger = logging.getLogger(__name__)
 
@@ -78,8 +78,15 @@ class ResumeAnalysisAPIView(ApiResponseMixin, APIView):
             resume_id,
         )
 
-        # Ownership check: ResumeService.get_resume_by_id raises 404 if not found or not owned
-        resume = ResumeService.get_resume_by_id(user, resume_id)
+        try:
+            resume = ParserService.get_optimized_resume(resume_id, user)
+        except ParserException:
+            # Keep ownership information private by returning the same response.
+            return ApiResponse.error(
+                request=request,
+                message="Resume not found.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
 
         try:
             analysis = AnalysisService().analyze(resume=resume)
@@ -97,7 +104,7 @@ class ResumeAnalysisAPIView(ApiResponseMixin, APIView):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        except (ParserException, FormatterException, PromptBuildException) as exc:
+        except (ParserException, FormatterException) as exc:
             logger.error(
                 "Pipeline error during analysis | user_id=%s | resume_id=%s | type=%s | error=%s",
                 user.id,
@@ -111,17 +118,30 @@ class ResumeAnalysisAPIView(ApiResponseMixin, APIView):
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
-        except AIProviderException as exc:
+        except (LLMConfigurationException, ProviderException) as exc:
             logger.error(
-                "AI provider error | user_id=%s | resume_id=%s | error=%s",
+                "AI service error | user_id=%s | resume_id=%s | error_type=%s",
                 user.id,
                 resume_id,
-                str(exc),
+                type(exc).__name__,
             )
             return ApiResponse.error(
                 request=request,
-                message="The AI service is temporarily unavailable. Please try again in a moment.",
+                message="The AI service is temporarily unavailable. Please try again shortly.",
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        except ChainExecutionException as exc:
+            logger.warning(
+                "Invalid AI response | user_id=%s | resume_id=%s | error_type=%s",
+                user.id,
+                resume_id,
+                type(exc).__name__,
+            )
+            return ApiResponse.error(
+                request=request,
+                message="The AI returned an unusable response. Please try again.",
+                status_code=status.HTTP_502_BAD_GATEWAY,
             )
 
         except AnalysisException as exc:
@@ -133,16 +153,16 @@ class ResumeAnalysisAPIView(ApiResponseMixin, APIView):
             )
             return ApiResponse.error(
                 request=request,
-                message="Analysis failed due to an unexpected AI response. Please try again.",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message="The AI returned an unusable response. Please try again.",
+                status_code=status.HTTP_502_BAD_GATEWAY,
             )
 
         except ResumeAIException as exc:
-            # Catch-all for any other resume AI exceptions
-            logger.exception(
-                "Unhandled ResumeAIException | user_id=%s | resume_id=%s",
+            logger.error(
+                "Unhandled ResumeAIException | user_id=%s | resume_id=%s | error_type=%s",
                 user.id,
                 resume_id,
+                type(exc).__name__,
             )
             return ApiResponse.error(
                 request=request,

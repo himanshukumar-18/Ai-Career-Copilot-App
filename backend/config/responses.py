@@ -53,6 +53,7 @@ class ApiResponse:
         request=None,
         data=None,
         message="Success.",
+        status_code=status.HTTP_200_OK,
     ):
 
         return cls._response(
@@ -65,7 +66,7 @@ class ApiResponse:
 
             data=data,
 
-            status_code=status.HTTP_200_OK,
+            status_code=status_code,
 
         )
 
@@ -76,6 +77,7 @@ class ApiResponse:
         request=None,
         data=None,
         message="Created successfully.",
+        status_code=status.HTTP_201_CREATED,
     ):
 
         return cls._response(
@@ -88,7 +90,7 @@ class ApiResponse:
 
             data=data,
 
-            status_code=status.HTTP_201_CREATED,
+            status_code=status_code,
 
         )
 
@@ -99,6 +101,7 @@ class ApiResponse:
         request=None,
         data=None,
         message="Updated successfully.",
+        status_code=status.HTTP_200_OK,
     ):
 
         return cls._response(
@@ -111,7 +114,7 @@ class ApiResponse:
 
             data=data,
 
-            status_code=status.HTTP_200_OK,
+            status_code=status_code,
 
         )
 
@@ -121,6 +124,7 @@ class ApiResponse:
         *,
         request=None,
         message="Deleted successfully.",
+        status_code=status.HTTP_204_NO_CONTENT,
     ):
 
         return cls._response(
@@ -131,7 +135,7 @@ class ApiResponse:
 
             request=request,
 
-            status_code=status.HTTP_204_NO_CONTENT,
+            status_code=status_code,
 
         )
 

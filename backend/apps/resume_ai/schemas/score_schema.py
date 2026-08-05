@@ -4,7 +4,7 @@ Pydantic schemas for granular score representations.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class Score(BaseModel):
     """Generic score model with grade, level, and UI color metadata."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     value: int = Field(
         ...,
@@ -20,19 +20,20 @@ class Score(BaseModel):
         le=100,
         description="Numeric score between 0 and 100."
     )
-    grade: str = Field(
+    grade: Literal["A+", "A", "B", "C", "D", "F"] = Field(
         ...,
         description="Letter grade (A+, A, B, C, D, F)."
     )
     level: str = Field(
         ...,
+        min_length=1,
         description="Performance level narrative."
     )
-    color: str = Field(
+    color: Literal["emerald", "green", "yellow", "orange", "red"] = Field(
         ...,
         description="UI color identifier."
     )
-    feedback: Optional[str] = Field(
+    feedback: str | None = Field(
         default=None,
         description="Short feedback statement."
     )
@@ -41,7 +42,7 @@ class Score(BaseModel):
 class ResumeScore(BaseModel):
     """Complete resume scoring summary."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid")
 
     overall: Score
     ats: Score
@@ -53,7 +54,7 @@ class ResumeScore(BaseModel):
 class SectionScore(BaseModel):
     """Section level scoring breakdown."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="forbid")
 
     summary: Score
     experience: Score

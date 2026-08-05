@@ -218,3 +218,33 @@ LLM_MODEL = config(
     "LLM_MODEL",
     default="llama-3.3-70b-versatile",
 )
+
+LLM_PROVIDER = config(
+    "LLM_PROVIDER",
+    default="groq",
+)
+
+GROQ_API_KEY = config(
+    "GROQ_API_KEY",
+    default="",
+)
+
+LLM_MODEL = config(
+    "LLM_MODEL",
+    default="llama-3.3-70b-versatile",
+)
+
+LLM_TEMPERATURE = config(
+    "LLM_TEMPERATURE",
+    default=0.2,
+)
+
+LLM_MAX_TOKENS = config(
+    "LLM_MAX_TOKENS",
+    default=4096,
+)
+
+LLM_TIMEOUT = config(
+    "LLM_TIMEOUT",
+    default=60,
+)

@@ -4,6 +4,8 @@ DRF serializers for Resume AI request and response contracts.
 
 from rest_framework import serializers
 
+from apps.resume_ai.constants import VALID_RESUME_SECTIONS
+
 
 class ResumeAnalysisRequestSerializer(serializers.Serializer):
     """Validates the request payload for AI resume analysis.
@@ -50,16 +52,7 @@ class ResumeImproveRequestSerializer(serializers.Serializer):
         section: The section to improve.
     """
 
-    VALID_SECTIONS = [
-        "profile",
-        "summary",
-        "experience",
-        "education",
-        "projects",
-        "skills",
-        "certifications",
-        "languages",
-    ]
+    VALID_SECTIONS: tuple[str, ...] = VALID_RESUME_SECTIONS
 
     resume_id = serializers.IntegerField(
         min_value=1,
