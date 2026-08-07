@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import Button from "../../ui/Button";
+import { RESUME_LIST_PATH } from "../../../routes/paths";
 
 const ResumeEditorHeader = ({
     isSaving = false,
@@ -66,7 +67,7 @@ const ResumeEditorHeader = ({
             <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
                 {/* Left: back navigation */}
                 <div className="flex min-w-0 items-center gap-3">
-                    <Link to="/resume">
+                    <Link to={RESUME_LIST_PATH}>
                         <Button
                             type="button"
                             onClick={onBack}

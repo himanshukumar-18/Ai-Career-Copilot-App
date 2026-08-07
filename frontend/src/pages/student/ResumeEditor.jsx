@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { calculateResumeCompletion } from "../../lib/utils";
+import { RESUME_LIST_PATH, resumeAnalysisPath } from "../../routes/paths";
 
 import ResumeEditorSkeleton from "../../components/resume/editor/ResumeEditorSkeleton";
 
@@ -78,7 +79,7 @@ const ResumeEditor = () => {
   }, [resume]);
 
   const handleBack = () => {
-    navigate("/student/resumes");
+    navigate(RESUME_LIST_PATH);
   };
 
   const handleSave = async () => {
@@ -113,7 +114,9 @@ const ResumeEditor = () => {
   };
 
   const handleAIImprove = () => {
-    toast.success("AI improvement is coming soon.");
+    if (resume?.id) {
+      navigate(resumeAnalysisPath(resume.id));
+    }
   };
 
   const handleZoomIn = () => setZoom((current) => Math.min(150, current + 10));
@@ -126,7 +129,7 @@ const ResumeEditor = () => {
   const saveStatus = isSaving ? "saving" : "saved";
 
   if (!resumeId) {
-    return <Navigate to="/student/resumes" replace />;
+    return <Navigate to={RESUME_LIST_PATH} replace />;
   }
 
   if (isLoading) {

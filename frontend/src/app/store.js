@@ -11,6 +11,7 @@ import projectsReducer from "../features/projects/projectSlice";
 import skillsReducer from "../features/skills/skillSlice";
 import socialLinksReducer from "../features/socialLinks/socialLinksSlice";
 import summaryReducer from "../features/summary/summarySlice";
+import resumeAIReducer from "../features/resumeAI/resumeAISlice";
 
 const store = configureStore({
     reducer: {
@@ -26,6 +27,7 @@ const store = configureStore({
         skills: skillsReducer,
         socialLinks: socialLinksReducer,
         summary: summaryReducer,
+        resumeAI: resumeAIReducer,
     },
 });
 

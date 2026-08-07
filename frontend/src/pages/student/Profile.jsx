@@ -65,6 +65,8 @@ const Profile = () => {
 
         if (profile) {
 
+            // The profile API response is the source of truth for this editable form.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData({
 
                 headline:

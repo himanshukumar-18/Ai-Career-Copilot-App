@@ -112,8 +112,6 @@ const Resume = () => {
 
   const hasResumes = Array.isArray(resumes) && resumes.length > 0;
   const hasResults = filteredResumes.length > 0;
-  const isSearching = debouncedSearch.trim().length > 0;
-
   // ===============================
   // Render
   // ===============================

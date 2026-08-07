@@ -37,8 +37,6 @@ export const updateResumeSummaryThunk = createAsyncThunk(
     "summary/updateResumeSummary",
     async ({ resumeId, content }, { rejectWithValue }) => {
 
-        console.log("summary: ", content)
-
         try {
             return await summaryService.updateSummary({
                 resumeId,

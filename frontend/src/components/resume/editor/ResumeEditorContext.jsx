@@ -8,6 +8,8 @@ export const ResumeEditorSectionProvider = ({ value, children }) => (
   </ResumeEditorSectionContext.Provider>
 );
 
+// Context consumers must live with the provider to keep the editor API cohesive.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useResumeEditorSection = () => {
   const context = useContext(ResumeEditorSectionContext);
   if (context === null) {

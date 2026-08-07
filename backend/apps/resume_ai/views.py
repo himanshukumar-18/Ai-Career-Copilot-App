@@ -27,8 +27,12 @@ from apps.resume_ai.exceptions import (
     ResumeAIException,
     ValidationException,
 )
-from apps.resume_ai.serializers import ResumeAnalysisRequestSerializer
+from apps.resume_ai.serializers import (
+    ResumeAnalysisRequestSerializer,
+    ResumeImproveRequestSerializer,
+)
 from apps.resume_ai.services.analysis_service import AnalysisService
+from apps.resume_ai.services.improvement_service import ImprovementService
 from apps.resume_ai.services.parser_service import ParserService
 
 logger = logging.getLogger(__name__)
@@ -181,5 +185,55 @@ class ResumeAnalysisAPIView(ApiResponseMixin, APIView):
             request=request,
             message="Resume analysed successfully.",
             data=analysis.model_dump(),
+            status_code=status.HTTP_200_OK,
+        )
+
+
+class ResumeImproveAPIView(ApiResponseMixin, APIView):
+    """Generates a reviewable improvement for an owned resume section."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ResumeImproveRequestSerializer
+
+    def post(self, request: Request) -> Response:
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        resume_id = serializer.validated_data["resume_id"]
+        section = serializer.validated_data["section"]
+
+        try:
+            resume = ParserService.get_optimized_resume(resume_id, request.user)
+            content = ImprovementService().improve(resume, section)
+        except ParserException:
+            return ApiResponse.error(
+                request=request,
+                message="Resume not found.",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationException as exc:
+            return ApiResponse.error(
+                request=request,
+                message=str(exc),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        except (LLMConfigurationException, ProviderException):
+            return ApiResponse.error(
+                request=request,
+                message="The AI service is temporarily unavailable. Please try again shortly.",
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except ResumeAIException:
+            logger.exception("Resume improvement failed | resume_id=%s | section=%s", resume_id, section)
+            return ApiResponse.error(
+                request=request,
+                message="Unable to improve this section. Please try again.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return ApiResponse.success(
+            request=request,
+            message="Resume section improved successfully.",
+            data={"section": section, "content": content},
             status_code=status.HTTP_200_OK,
         )

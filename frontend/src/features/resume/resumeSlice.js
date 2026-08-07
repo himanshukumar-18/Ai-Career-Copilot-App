@@ -39,6 +39,23 @@ const resumeSlice = createSlice({
         clearSelectedResume: (state) => {
             state.selectedResume = null;
         },
+
+        updateResumeSummaryInState: (state, action) => {
+            const { resumeId, content } = action.payload;
+            const updateSummary = (resume) =>
+                String(resume?.id) === String(resumeId)
+                    ? {
+                        ...resume,
+                        summary: {
+                            ...(typeof resume.summary === "object" ? resume.summary : {}),
+                            content,
+                        },
+                    }
+                    : resume;
+
+            state.selectedResume = updateSummary(state.selectedResume);
+            state.resumes = state.resumes.map(updateSummary);
+        },
     },
 
     extraReducers: (builder) => {
@@ -186,6 +203,7 @@ const resumeSlice = createSlice({
 export const {
     clearResumeError,
     clearSelectedResume,
+    updateResumeSummaryInState,
 } = resumeSlice.actions;
 
 export default resumeSlice.reducer;

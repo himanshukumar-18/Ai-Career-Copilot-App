@@ -4,8 +4,7 @@ import {
     Star,
     Trash2,
     Upload,
-    Download,
-    PencilLine
+    Download
 } from "lucide-react";
 
 import  Button  from "../../ui/Button";
