@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.views import APIView
 from config.responses import ApiResponse, ApiResponseMixin
 
 from django_filters.rest_framework import (
@@ -27,6 +28,22 @@ from apps.resumes.serializers import (
     ResumeSerializer,
 )
 from apps.resumes.services import ResumeService
+
+
+class PublicResumeDetailView(APIView):
+    """Read-only public representation of a resume explicitly published by its owner."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        resume = Resume.objects.filter(id=pk, is_public=True).first()
+        if resume is None:
+            from django.http import Http404
+
+            raise Http404("Public resume not found.")
+
+        serializer = ResumeDetailSerializer(resume, context={"request": request})
+        return ApiResponse.success(request=request, data=serializer.data)
 
 
 class ResumeViewSet(
@@ -79,6 +96,17 @@ class ResumeViewSet(
 
         return Resume.objects.filter(
             user=self.request.user
+        ).select_related(
+            "profile",
+            "summary",
+        ).prefetch_related(
+            "experiences",
+            "educations",
+            "skills",
+            "projects",
+            "certifications",
+            "languages",
+            "social_links",
         ).order_by(
             "-updated_at"
         )
@@ -95,7 +123,7 @@ class ResumeViewSet(
 
     def perform_create(self, serializer):
 
-        ResumeService.create_resume(
+        serializer.instance = ResumeService.create_resume(
             user=self.request.user,
             validated_data=serializer.validated_data,
         )
@@ -148,12 +176,15 @@ class ResumeViewSet(
 
         resume = self.get_object()
 
-        ResumeService.set_default_resume(
+        updated_resume = ResumeService.set_default_resume(
             resume,
         )
 
+        serializer = ResumeSerializer(updated_resume, context={"request": request})
+
         return ApiResponse.updated(
            request=request,
+           data=serializer.data,
            message="Default resume updated successfully."
         )
 
@@ -166,12 +197,24 @@ class ResumeViewSet(
 
         resume = self.get_object()
 
-        ResumeService.publish_resume(
+        published_resume = ResumeService.publish_resume(
             resume,
+        )
+
+        serializer = ResumeDetailSerializer(
+            published_resume,
+            context={"request": request},
         )
 
         return ApiResponse.success(
             request=request,
+            data={
+                "resume": serializer.data,
+                # This is a frontend-relative path: the browser supplies the
+                # deployed origin rather than the API server guessing a host.
+                "public_path": f"/public/resume/{published_resume.id}",
+                "published_at": published_resume.updated_at.isoformat(),
+            },
             message="Resume published successfully.",
         )
 
@@ -184,11 +227,17 @@ class ResumeViewSet(
 
         resume = self.get_object()
 
-        ResumeService.unpublish_resume(
+        unpublished_resume = ResumeService.unpublish_resume(
             resume,
+        )
+
+        serializer = ResumeDetailSerializer(
+            unpublished_resume,
+            context={"request": request},
         )
 
         return ApiResponse.success(
            request = request,
+           data={"resume": serializer.data},
            message="Resume unpublished successfully.",
         )

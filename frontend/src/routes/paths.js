@@ -3,3 +3,6 @@ export const RESUME_ANALYSIS_PATH = "/student/resume-analysis";
 
 export const resumeAnalysisPath = (resumeId) =>
     `${RESUME_ANALYSIS_PATH}?resumeId=${encodeURIComponent(resumeId)}`;
+
+export const publicResumePath = (resumeId) =>
+    `/public/resume/${encodeURIComponent(resumeId)}`;

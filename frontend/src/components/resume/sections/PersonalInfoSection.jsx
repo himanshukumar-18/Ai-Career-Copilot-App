@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Camera, Loader2, Upload } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -117,7 +117,7 @@ const PersonalInfoSection = () => {
         reset(getFormValues(profile));
     }, [profile, reset]);
 
-    const saveProfile = async (formData) => {
+    const saveProfile = useCallback(async (formData) => {
         if (!resumeId) {
             toast.error("Resume ID is missing.");
             return;
@@ -139,7 +139,7 @@ const PersonalInfoSection = () => {
                 "Unable to save personal information."
             );
         }
-    };
+    }, [dispatch, resumeId]);
 
     useEffect(() => {
         const unregister = registerSaveAction(
@@ -148,7 +148,7 @@ const PersonalInfoSection = () => {
         );
 
         return unregister;
-    }, [handleSubmit, registerSaveAction]);
+    }, [handleSubmit, registerSaveAction, saveProfile]);
 
     const handlePhotoSelect = async (event) => {
         const file = event.target.files?.[0];

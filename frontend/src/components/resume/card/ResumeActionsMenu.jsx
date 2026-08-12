@@ -80,7 +80,7 @@ const ResumeActionMenu = ({
 
                 <DropdownMenuSeparator />
 
-                {resume?.is_published ? (
+                {resume?.is_public ? (
                     <DropdownMenuItem
                         onClick={stopPropagation(() => onUnpublish(resume))}
                         className="cursor-pointer"

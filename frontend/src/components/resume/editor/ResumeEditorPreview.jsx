@@ -17,14 +17,14 @@ const PreviewSection = ({ title, children }) => {
     );
 };
 
-const ResumeEditorPreview = ({ resume }) => {
+const ResumeEditorPreview = ({ resume, useLiveData = true }) => {
     const liveProfile = useSelector((state) => state.resumeProfile.profile);
     const liveSummary = useSelector((state) => state.summary.summary);
     const certificationState = useSelector((state) => state.resumeCertifications);
     const languageState = useSelector((state) => state.language);
     const socialLinkState = useSelector((state) => state.socialLinks);
 
-    const profile = liveProfile || resume?.profile || resume?.resume_profile || {};
+    const profile = (useLiveData ? liveProfile : null) || resume?.profile || resume?.resume_profile || {};
     const personal = resume?.personal || profile?.personal || profile || {};
 
     const firstName = personal?.first_name || personal?.firstName || "";
@@ -47,7 +47,7 @@ const ResumeEditorPreview = ({ resume }) => {
     const location =
         personal?.location || personal?.city || personal?.address || "";
 
-    const socialLinks = socialLinkState.fetchStatus === "succeeded"
+    const socialLinks = useLiveData && socialLinkState.fetchStatus === "succeeded"
         ? getArray(socialLinkState.data)
         : getArray(resume?.social_links || profile?.social_links);
     const primaryLink = socialLinks.find((link) => link?.url)?.url || "";
@@ -59,7 +59,7 @@ const ResumeEditorPreview = ({ resume }) => {
         "";
 
     const summary = personal?.summary || (
-        liveSummary
+        useLiveData && liveSummary
             ? liveSummary.content
             : resume?.summary?.content ||
             resume?.summary ||
@@ -79,11 +79,11 @@ const ResumeEditorPreview = ({ resume }) => {
 
     const projects = getArray(resume?.projects || profile?.projects);
 
-    const certifications = certificationState.fetchStatus === "succeeded"
+    const certifications = useLiveData && certificationState.fetchStatus === "succeeded"
         ? getArray(certificationState.items)
         : getArray(resume?.certifications || profile?.certifications);
 
-    const languages = languageState.fetchStatus === "succeeded"
+    const languages = useLiveData && languageState.fetchStatus === "succeeded"
         ? getArray(languageState.items)
         : getArray(resume?.languages || profile?.languages);
 

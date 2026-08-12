@@ -18,6 +18,7 @@ import { RESUME_LIST_PATH } from "../../../routes/paths";
 const ResumeEditorHeader = ({
     isSaving = false,
     isPublished = false,
+    isPublishing = false,
     onBack,
     onSave,
     onPublish,
@@ -113,7 +114,7 @@ const ResumeEditorHeader = ({
                                     <button
                                         type="button"
                                         role="menuitem"
-                                        disabled={isSaving}
+                                        disabled={isSaving || isPublishing}
                                         onClick={() => handleMoreAction(onAIImprove)}
                                         className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     >
@@ -142,7 +143,7 @@ const ResumeEditorHeader = ({
                                         className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-zinc-300 transition hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <Share2 size={16} />
-                                        {isPublished ? "Unpublish resume" : "Publish resume"}
+                                        {isPublishing ? "Publishing..." : isPublished ? "Publish again" : "Publish resume"}
                                     </button>
 
                                     <button

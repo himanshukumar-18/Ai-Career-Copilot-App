@@ -120,7 +120,7 @@ const ResumeCard = ({
                     </ResumeBadge>
                 )}
 
-                {resume.is_published ? (
+                {resume.is_public ? (
                     <ResumeBadge variant="success">
                         Published
                     </ResumeBadge>

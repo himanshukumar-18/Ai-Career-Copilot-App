@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import ExportPDFModal from "../../components/resume/modal/ExportPDFModal";
 
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { calculateResumeCompletion } from "../../lib/utils";
-import { RESUME_LIST_PATH, resumeAnalysisPath } from "../../routes/paths";
+import { publicResumePath, RESUME_LIST_PATH, resumeAnalysisPath } from "../../routes/paths";
 
 import ResumeEditorSkeleton from "../../components/resume/editor/ResumeEditorSkeleton";
 
@@ -13,14 +14,14 @@ import ResumeEditorLayout from "../../layouts/ResumeEditorLayout";
 import {
   fetchResumeById,
   publishResume,
-  unpublishResume,
-  updateResume,
 } from "../../features/resume/resumeThunk";
 import {
   selectResumes,
   selectSelectedResume,
   selectResumeLoading,
   selectResumeError,
+  selectLiveResumeData,
+  selectPublishState,
 } from "../../features/resume/resumeSelectors";
 
 
@@ -31,6 +32,8 @@ const ResumeEditor = () => {
 
   const resumes = useSelector(selectResumes);
   const selectedResume = useSelector(selectSelectedResume);
+  const liveResume = useSelector(selectLiveResumeData);
+  const publishState = useSelector(selectPublishState);
   const resume =
     selectedResume ??
     resumes?.find((item) => String(item.id) === String(resumeId)) ??
@@ -39,6 +42,7 @@ const ResumeEditor = () => {
   const isError = useSelector(selectResumeError);
   const message = isError?.message || null;
   const [zoom, setZoom] = useState(100);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
 
   useEffect(() => {
@@ -56,61 +60,54 @@ const ResumeEditor = () => {
     navigate(sectionUrl(sectionId));
   };
 
+  const editorResume = liveResume ?? resume;
+
   const completedSections = useMemo(() => {
-    if (!resume) return [];
+    if (!editorResume) return [];
 
     const completed = [];
-    if (resume.summary?.content || resume.summary) completed.push("summary");
-    if (resume.experiences?.length) completed.push("experience");
-    if (resume.education?.length || resume.educations?.length) completed.push("education");
-    if (resume.skills?.length) completed.push("skills");
-    if (resume.projects?.length) completed.push("projects");
-    if (resume.certifications?.length) completed.push("certifications");
-    if (resume.languages?.length) completed.push("languages");
-    if (resume.social_links?.length) {
+    if (editorResume.summary?.content || editorResume.summary) completed.push("summary");
+    if (editorResume.experiences?.some((item) => item.company && item.position)) completed.push("experience");
+    if ((editorResume.education || editorResume.educations)?.some((item) => item.institution && item.degree)) completed.push("education");
+    if (editorResume.skills?.some((item) => item.name)) completed.push("skills");
+    if (editorResume.projects?.some((item) => item.title && item.description)) completed.push("projects");
+    if (editorResume.certifications?.some((item) => item.name)) completed.push("certifications");
+    if (editorResume.languages?.some((item) => item.name)) completed.push("languages");
+    if (editorResume.social_links?.some((item) => item.url)) {
       completed.push("social");
     }
 
-    if (resume.profile?.first_name || resume.profile?.last_name || resume.profile?.email) {
+    if (editorResume.profile?.first_name || editorResume.profile?.last_name) {
       completed.push("personal");
     }
 
     return completed;
-  }, [resume]);
+  }, [editorResume]);
 
   const handleBack = () => {
     navigate(RESUME_LIST_PATH);
   };
 
   const handleSave = async () => {
-    if (!resume?.id) return;
-
-    try {
-      await dispatch(updateResume({ id: resume.id, data: {} })).unwrap();
-      toast.success("Resume saved successfully.");
-    } catch (error) {
-      toast.error(error?.message || "Unable to save resume.");
-    }
+    // Section forms register their own save operation. Reaching this fallback
+    // means there is no section mutation to send, so avoid an empty PATCH that
+    // could replace detailed editor data with a list serializer response.
+    toast.message("There are no changes to save.");
   };
 
-  const handlePublishToggle = async () => {
+  const handlePublishResume = async () => {
     if (!resume?.id) return;
 
     try {
-      if (resume.is_published) {
-        await dispatch(unpublishResume(resume.id)).unwrap();
-        toast.success("Resume unpublished successfully.");
-      } else {
-        await dispatch(publishResume(resume.id)).unwrap();
-        toast.success("Resume published successfully.");
-      }
+      await dispatch(publishResume(resume.id)).unwrap();
+      toast.success("Resume published successfully.");
     } catch (error) {
-      toast.error(error?.message || "Unable to update publish state.");
+      toast.error(error?.message || "Unable to publish resume.");
     }
   };
 
   const handleExportPDF = () => {
-    window.print();
+    setIsExportModalOpen(true);
   };
 
   const handleAIImprove = () => {
@@ -122,11 +119,16 @@ const ResumeEditor = () => {
   const handleZoomIn = () => setZoom((current) => Math.min(150, current + 10));
   const handleZoomOut = () => setZoom((current) => Math.max(40, current - 10));
 
-  const completion = calculateResumeCompletion(resume);
+  const completion = calculateResumeCompletion(editorResume);
   const atsScore = resume?.ats_score ?? completion;
-  const isPublished = Boolean(resume?.is_published);
+  const isPublished = Boolean(resume?.is_public);
   const isSaving = isLoading;
   const saveStatus = isSaving ? "saving" : "saved";
+  const publicUrl = publishState.publicUrl || (
+    isPublished && resume?.id
+      ? new URL(publicResumePath(resume.id), window.location.origin).toString()
+      : null
+  );
 
   if (!resumeId) {
     return <Navigate to={RESUME_LIST_PATH} replace />;
@@ -160,7 +162,7 @@ if (isError) {
         onBack={handleBack}
         onSave={handleSave}
         onPreviewToggle={() => {}}
-        onPublish={handlePublishToggle}
+        onPublish={handlePublishResume}
         onAIImprove={handleAIImprove}
         onSectionChange={handleSectionChange}
       />
@@ -185,31 +187,41 @@ if (isError) {
   }
 
   return (
-    <ResumeEditorLayout
-      resume={resume}
-      resumeId={resumeId}
-      activeSection={activeSection}
-      completedSections={completedSections}
-      completion={completion}
-      template={resume?.template || "Classic"}
-      isLoading={false}
-      isError={false}
-      message={null}
-      saveStatus={saveStatus}
-      isSaving={isSaving}
-      atsScore={atsScore}
-      isPublished={isPublished}
-      zoom={zoom}
-      onZoomIn={handleZoomIn}
-      onZoomOut={handleZoomOut}
-      onDownload={handleExportPDF}
-      onBack={handleBack}
-      onSave={handleSave}
-      onPreviewToggle={() => {}}
-      onPublish={handlePublishToggle}
-      onAIImprove={handleAIImprove}
-      onSectionChange={handleSectionChange}
-    />
+    <>
+      <ExportPDFModal
+        open={isExportModalOpen}
+        onOpenChange={setIsExportModalOpen}
+      />
+      <ResumeEditorLayout
+        resume={editorResume}
+        resumeId={resumeId}
+        activeSection={activeSection}
+        completedSections={completedSections}
+        completion={completion}
+        template={resume?.template || "Classic"}
+        isLoading={false}
+        isError={false}
+        message={null}
+        saveStatus={saveStatus}
+        isSaving={isSaving}
+        atsScore={atsScore}
+        isPublished={isPublished}
+        isPublishing={publishState.status === "pending"}
+        publishError={publishState.error}
+        publicUrl={publicUrl}
+        hasUnpublishedChanges={publishState.hasUnpublishedChanges}
+        zoom={zoom}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onDownload={handleExportPDF}
+        onBack={handleBack}
+        onSave={handleSave}
+        onPreviewToggle={() => {}}
+        onPublish={handlePublishResume}
+        onAIImprove={handleAIImprove}
+        onSectionChange={handleSectionChange}
+      />
+    </>
   );
 
 };

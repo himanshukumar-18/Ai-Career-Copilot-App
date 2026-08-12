@@ -17,6 +17,7 @@ from apps.resumes.views import (
 )
 
 from apps.resumes.views.profile import ResumeProfileViewSet
+from apps.resumes.views.resume import PublicResumeDetailView
 
 router = DefaultRouter()
 
@@ -33,6 +34,11 @@ router.register(r"social-links", SocialLinkViewSet, basename="social-link")
 router.register(r"custom-sections", CustomSectionViewSet, basename="custom-section")
 
 urlpatterns = router.urls + [
+    path(
+        "public/resumes/<int:pk>/",
+        PublicResumeDetailView.as_view(),
+        name="public-resume-detail",
+    ),
     path(
         "resumes/<int:resume_id>/profile/",
         ResumeProfileViewSet.as_view(),

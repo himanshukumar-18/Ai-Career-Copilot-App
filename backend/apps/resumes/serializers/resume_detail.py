@@ -14,11 +14,17 @@ from .reference import ReferenceSerializer
 from .social_link import SocialLinkSerializer
 from .custom_section import CustomSectionSerializer
 from .summary import ResumeSummarySerializer
+from apps.resumes.services import ResumeService
 
 
 class ResumeDetailSerializer(
     serializers.ModelSerializer
 ):
+
+    completion_percentage = serializers.SerializerMethodField()
+
+    def get_completion_percentage(self, resume):
+        return ResumeService.calculate_completion(resume)
 
     profile = ResumeProfileSerializer(
         read_only=True,
@@ -103,6 +109,8 @@ class ResumeDetailSerializer(
             "created_at",
 
             "updated_at",
+
+            "completion_percentage",
 
             "profile",
 

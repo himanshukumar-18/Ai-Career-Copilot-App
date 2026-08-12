@@ -24,6 +24,13 @@ const initialState = {
         next: null,
         previous: null,
     },
+    publish: {
+        status: "idle",
+        error: null,
+        publicUrl: null,
+        publishedAt: null,
+        hasUnpublishedChanges: false,
+    },
 };
 
 const resumeSlice = createSlice({
@@ -94,7 +101,10 @@ const resumeSlice = createSlice({
 
             .addCase(fetchResumeById.fulfilled, (state, action) => {
                 state.loading = false;
-                state.selectedResume = action.payload.data;
+                state.selectedResume = {
+                    ...state.selectedResume,
+                    ...action.payload.data,
+                };
             })
 
             .addCase(fetchResumeById.rejected, (state, action) => {
@@ -135,6 +145,11 @@ const resumeSlice = createSlice({
                 state.selectedResume = action.payload.data;
             })
 
+            .addCase(updateResume.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+
             .addCase(updateResume.rejected, (state, action) => {
                 state.loading = false;
 
@@ -167,25 +182,53 @@ const resumeSlice = createSlice({
             })
 
             // Publish Resume
+            .addCase(publishResume.pending, (state) => {
+                state.publish.status = "pending";
+                state.publish.error = null;
+            })
             .addCase(publishResume.fulfilled, (state, action) => {
                 state.loading = false;
+                state.publish.status = "succeeded";
+                state.publish.publicUrl = action.payload.data.public_url;
+                state.publish.publishedAt = action.payload.data.published_at;
+                state.publish.hasUnpublishedChanges = false;
 
                 state.resumes = state.resumes.map((resume) =>
-                    resume.id === action.payload.data.id
-                        ? action.payload.data
+                    resume.id === action.payload.data.resume.id
+                        ? action.payload.data.resume
                         : resume
                 );
+
+                state.selectedResume = action.payload.data.resume;
+            })
+            .addCase(publishResume.rejected, (state, action) => {
+                state.publish.status = "failed";
+                state.publish.error = action.payload?.message || "Unable to publish resume.";
             })
 
             // Unpublish Resume
+            .addCase(unpublishResume.pending, (state) => {
+                state.publish.status = "pending";
+                state.publish.error = null;
+            })
             .addCase(unpublishResume.fulfilled, (state, action) => {
                 state.loading = false;
+                state.publish.status = "idle";
+                state.publish.publicUrl = null;
+                state.publish.publishedAt = null;
+                state.publish.hasUnpublishedChanges = false;
 
                 state.resumes = state.resumes.map((resume) =>
-                    resume.id === action.payload.data.id
-                        ? action.payload.data
+                    resume.id === action.payload.data.resume.id
+                        ? action.payload.data.resume
                         : resume
                 );
+
+                state.selectedResume = action.payload.data.resume;
+            })
+            .addCase(unpublishResume.rejected, (state, action) => {
+                state.publish.status = "failed";
+                state.publish.error = action.payload?.message || "Unable to unpublish resume.";
             })
 
             // Set Default Resume
@@ -196,7 +239,18 @@ const resumeSlice = createSlice({
                     ...resume,
                     is_default: resume.id === action.payload.data.id,
                 }));
-            });
+            })
+            .addMatcher(
+                (action) =>
+                    /^(resumeProfile|summary|experience|education|skills|projects|certifications|language|socialLinks)\//.test(action.type) &&
+                    /\/(create|update|add|edit|remove|delete)/.test(action.type) &&
+                    action.type.endsWith("/fulfilled"),
+                (state) => {
+                    if (state.selectedResume?.is_public) {
+                        state.publish.hasUnpublishedChanges = true;
+                    }
+                }
+            );
     },
 });
 

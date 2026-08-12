@@ -24,6 +24,7 @@ import ResumeEditor from "../pages/student/ResumeEditor";
 import ProjectLab from "../pages/student/ProjectLab";
 import Roadmap from "../pages/student/Roadmap";
 import ResumeAnalysis from "../pages/student/ResumeAnalysis";
+import PublicResume from "../pages/PublicResume";
 
 
 //page not found
@@ -58,6 +59,11 @@ const AppRoutes = () => {
                 </Route>
 
                 {/* Dashboard Routes */}
+
+                <Route
+                    path="/public/resume/:resumeId"
+                    element={<PublicResume />}
+                />
 
                 <Route
                     element={

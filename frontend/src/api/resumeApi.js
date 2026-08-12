@@ -29,6 +29,9 @@ export const resumeApi = {
 
     setDefaultResume: (id) =>
         axiosInstance.post(`${BASE_URL}/${id}/set-default/`),
+
+    getPublicResume: (id) =>
+        axiosInstance.get(`/public/resumes/${id}/`),
 };
 
 export default resumeApi;

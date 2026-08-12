@@ -16,6 +16,10 @@ const ResumeEditorLayout = ({
   message,
   isSaving,
   isPublished,
+  isPublishing,
+  publishError,
+  publicUrl,
+  hasUnpublishedChanges,
   onBack,
   onSave,
   onPublish,
@@ -24,6 +28,7 @@ const ResumeEditorLayout = ({
   onSectionChange,
 }) => {
   const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("idle");
   const saveActionsRef = useRef({});
 
   const registerSaveAction = useCallback((sectionId, action) => {
@@ -52,6 +57,21 @@ const ResumeEditorLayout = ({
   const openPreviewDrawer = useCallback(() => {
     setIsPreviewDrawerOpen(true);
   }, []);
+
+  const copyPublicLink = useCallback(async () => {
+    if (!publicUrl || !navigator.clipboard) {
+      setCopyStatus("error");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1800);
+    } catch {
+      setCopyStatus("error");
+    }
+  }, [publicUrl]);
 
   const handleSave = useCallback(async () => {
     const saveAction = getSaveAction(activeSection);
@@ -133,12 +153,59 @@ const ResumeEditorLayout = ({
         <ResumeEditorHeader
           isSaving={isSaving}
           isPublished={isPublished}
+          isPublishing={isPublishing}
           onBack={onBack}
           onSave={handleSave}
           onPublish={onPublish}
           onExportPDF={onDownload}
           onAIImprove={onAIImprove}
         />
+
+        {(isPublished || publishError) && (
+          <section
+            className="mx-auto mt-5 max-w-7xl border border-zinc-800 bg-zinc-950 px-4 py-4 sm:px-6"
+            aria-live="polite"
+          >
+            {publishError ? (
+              <p role="alert" className="text-sm text-red-300">{publishError}</p>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-emerald-300">
+                    {hasUnpublishedChanges ? "Published — changes pending" : "Resume published"}
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-500">
+                    {hasUnpublishedChanges
+                      ? "Your public resume does not include your latest saved changes. Publish again to update it."
+                      : "Your resume is publicly accessible."}
+                  </p>
+                </div>
+                {publicUrl && (
+                  <div className="flex min-w-0 flex-col gap-2 sm:items-end">
+                    <a
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="max-w-full truncate text-xs text-zinc-300 underline decoration-zinc-600 underline-offset-4 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                      aria-label="Open public resume"
+                    >
+                      {publicUrl}
+                    </a>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={copyPublicLink} className="border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        {copyStatus === "copied" ? "Copied!" : "Copy link"}
+                      </button>
+                      <a href={publicUrl} target="_blank" rel="noreferrer" className="border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500">
+                        Open resume
+                      </a>
+                    </div>
+                    {copyStatus === "error" && <p className="text-xs text-red-300">Unable to copy the link. Please copy it manually.</p>}
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
         <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:py-9">
           {/* Mobile/tablet section tabs */}

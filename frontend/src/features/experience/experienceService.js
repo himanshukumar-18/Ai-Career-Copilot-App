@@ -26,20 +26,13 @@ const getExperiences = async (resumeId) => {
 
 const createExperience = async (payload) => {
     // Last checkpoint before this leaves the browser. If `resume` is
-    // missing or not a real number here, sending it anyway just produces
-    // a confusing error from the server. Fail clearly, right here,
-    // with the exact payload printed so it's obvious what went wrong.
+    // missing or not a real number here, sending it would only produce a
+    // confusing server error.
     if (
         payload?.resume === undefined ||
         payload?.resume === null ||
         Number.isNaN(Number(payload.resume))
     ) {
-        // eslint-disable-next-line no-console
-        console.error(
-            "experienceService.createExperience: payload is missing a valid 'resume' id.",
-            payload
-        );
-
         throw new Error(
             "Cannot save experience: resume id is missing. Please reload the page."
         );

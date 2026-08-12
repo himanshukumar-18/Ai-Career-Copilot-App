@@ -21,6 +21,31 @@ from apps.resumes.model import (
 class ResumeService:
 
     @staticmethod
+    def calculate_completion(resume):
+        """Return the persisted-resume completion used by list/card views."""
+        has_text = lambda value: bool(value and value.strip())
+        profile = getattr(resume, "profile", None)
+        summary = getattr(resume, "summary", None)
+
+        checks = [
+            bool(
+                profile
+                and (has_text(profile.first_name) or has_text(profile.last_name))
+                and any(has_text(value) for value in (profile.headline, profile.email, profile.phone))
+            ),
+            bool(summary and has_text(summary.content)),
+            any(has_text(item.company) and has_text(item.position) for item in resume.experiences.all()),
+            any(has_text(item.institution) and has_text(item.degree) for item in resume.educations.all()),
+            any(has_text(item.name) for item in resume.skills.all()),
+            any(has_text(item.title) and has_text(item.description) for item in resume.projects.all()),
+            any(has_text(item.name) for item in resume.certifications.all()),
+            any(has_text(item.name) for item in resume.languages.all()),
+            any(has_text(item.url) for item in resume.social_links.all()),
+        ]
+
+        return round(sum(checks) / len(checks) * 100)
+
+    @staticmethod
     def list_user_resumes(user):
         return Resume.objects.filter(user=user).order_by("-updated_at")
 

@@ -65,7 +65,7 @@ AI Career Copilot provides:
 | 🔐 **JWT Authentication** | Email/password login + Google OAuth 2.0 + OTP email verification |
 | 🛡️ **Rate Limiting** | IP-based rate limiting on all auth endpoints via `django-ratelimit` |
 | ⚡ **Redis Caching** | User data cached in Redis to reduce database load |
-| 📄 **Resume Builder** | Create and manage multiple resumes with title, template, theme, and font settings |
+| 📄 **Finalized Resume Builder** | Section-based editor for multiple resumes with a single Redux-backed live data flow |
 | 🎨 **4 Resume Templates** | Classic, Modern, Minimal, Developer |
 | 👤 **Resume Profile** | Full personal info — name, headline, photo, phone, address, city, state, country |
 | 📸 **Profile Image Upload** | Photo upload with Cloudinary integration |
@@ -77,6 +77,11 @@ AI Career Copilot provides:
 | 🏅 **Certifications** | Certifications with issuer, credential ID, URL, and expiry |
 | 🌍 **Languages** | Languages with proficiency levels |
 | 🔗 **Social Links** | Links to GitHub, LinkedIn, portfolio, and other platforms |
+| 📈 **Dynamic Completion** | Meaningful, live completion across personal info, summary, experience, education, skills, projects, certifications, languages, and social links |
+| 👁️ **Live Resume Preview** | Responsive desktop split-pane and mobile preview drawer backed by the current resume state |
+| 📥 **PDF Export** | Export the current Redux resume data through production PDF templates |
+| 🌐 **Public Resume Sharing** | Publish a resume, copy/open its public URL, and unpublish it at any time |
+| 🔄 **Republish Awareness** | Clear “changes pending” state when a published resume is edited |
 | 📖 **Achievements** | Dedicated achievement entries |
 | 📋 **References** | Professional references section |
 | 🗂️ **Custom Sections** | Custom, user-defined resume sections |
@@ -105,6 +110,53 @@ AI Career Copilot provides:
 | 🧠 **Skill Gap Analysis** | `Planned` |
 | 🔬 **AI Project Lab** | `Planned` (page stub exists) |
 | 🤖 **LangGraph Agentic Workflows** | `Planned` |
+
+---
+
+## 📄 Resume Builder
+
+The Resume Builder is the finalized core workflow of AI Career Copilot. It edits one resume through dedicated section APIs while Redux composes the current editor state for the preview, completion indicator, PDF export, AI workflows, and publishing.
+
+```
+Edit a section
+      ↓
+Section API + Redux slice update
+      ↓
+Live preview / dynamic completion / PDF mapper / AI tools
+      ↓
+Publish current resume → public URL → copy or open
+```
+
+### Sections and completion
+
+Completion is calculated from meaningful persisted or live Redux data—never from the mere existence of an object or array. The nine equally weighted sections are Personal Information, Summary, Experience, Education, Skills, Projects, Certifications, Languages, and Social Links.
+
+- Personal requires a name plus a headline, email, or phone.
+- Summary requires non-empty content.
+- Experience, Education, Projects, and Social Links must contain valid core fields.
+- Skills, Certifications, and Languages require at least one named entry.
+
+The editor recalculates immediately after a section state update. Resume cards receive the same persisted calculation as `completion_percentage` from the API.
+
+### Publish and public resumes
+
+Publishing is not considered successful solely because an HTTP request returns `200`. The frontend validates the standard `ApiResponse` payload and requires both the updated resume and a `public_path`. If either is missing, it shows an actionable error instead of a false success state.
+
+On success the user can copy or open the generated public URL. The path is resolved against the deployed frontend origin, so no localhost URL is hardcoded. Editing a published resume marks its public version as out of date until the user publishes again.
+
+| Route | Access | Purpose |
+|---|---|---|
+| `/resume/:resumeId/:section` | Authenticated | Resume editor sections |
+| `/public/resume/:resumeId` | Public | Responsive, read-only public resume |
+| `/api/v1/public/resumes/:id/` | Public | Public resume data; returns `404` unless published |
+
+### User journey
+
+1. Create or open a resume and edit any section.
+2. Save the section; the live preview and completion state synchronize immediately.
+3. Use AI Improve/Analysis, then apply improvements to the same resume state.
+4. Export PDF to download the latest mapped resume data.
+5. Publish, copy the link, or open the public resume. Republish after later changes.
 
 ---
 
@@ -335,6 +387,7 @@ ai-career-copilot/
 │       │   ├── auth/              # Login, Register, VerifyOTP pages
 │       │   ├── student/           # Dashboard, Profile, Resume, ResumeEditor,
 │       │   │                      # ProjectLab (stub), Roadmap (stub)
+│       │   ├── PublicResume.jsx   # Read-only public resume page
 │       │   └── admin/             # Admin Dashboard
 │       ├── layouts/
 │       │   ├── AuthLayout.jsx     # Wrapper for auth pages
@@ -344,7 +397,9 @@ ai-career-copilot/
 │       │   ├── AppRoutes.jsx      # All route declarations
 │       │   └── ProtectedRoute.jsx # JWT guard for protected routes
 │       ├── hooks/
-│       │   └── useDebounce.js     # Debounce hook for auto-save
+│       │   ├── useDebounce.js
+│       │   └── useResumePDF.js    # Current Redux state → PDF download flow
+│       ├── pdf/                   # PDF document and template components
 │       ├── lib/
 │       │   ├── utils.js
 │       │   └── validations/       # Zod schemas per resume section
@@ -596,6 +651,7 @@ All resume endpoints require JWT authentication. Every object is scoped to the a
 | `POST` | `/resumes/{id}/duplicate/` | Duplicate a resume |
 | `POST` | `/resumes/{id}/publish/` | Make a resume public |
 | `POST` | `/resumes/{id}/unpublish/` | Make a resume private |
+| `GET` | `/public/resumes/{id}/` | Read a published resume without authentication; unpublished resumes return `404` |
 | `POST` | `/resumes/{id}/set_default/` | Set as default resume |
 | `GET / PUT / PATCH` | `/resumes/{id}/profile/` | Get or update the resume profile (personal info, photo) |
 | `GET / PUT / PATCH` | `/resumes/{id}/summary/` | Get or update the professional summary |
@@ -823,6 +879,10 @@ All models use `ConfigDict(extra="forbid")` — any extra keys from the LLM are 
 
 - [x] JWT Authentication (email + Google OAuth + OTP)
 - [x] Full Resume Builder (all sections)
+- [x] Responsive live resume preview
+- [x] Dynamic meaningful completion calculation
+- [x] PDF export from current resume state
+- [x] Public resume publishing with copy/open link controls
 - [x] Profile image upload (Cloudinary)
 - [x] AI Resume Analysis (LangChain + Groq + Pydantic)
 - [x] Multi-dimensional scoring engine
@@ -834,8 +894,6 @@ All models use `ConfigDict(extra="forbid")` — any extra keys from the LLM are 
 
 ### 🔄 In Progress
 
-- [ ] Resume Live Preview (section-by-section in editor)
-- [ ] Resume PDF Export
 - [ ] Roadmap page (backend model seeded, frontend page is a stub)
 
 ### 📋 Planned

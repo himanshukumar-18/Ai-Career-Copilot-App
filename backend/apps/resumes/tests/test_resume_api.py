@@ -65,3 +65,31 @@ class ResumeAPITestCase(TestCase):
         resp = self.client.post(f"/api/v1/resumes/{resume.id}/duplicate/")
         self.assertIn(resp.status_code, (200, 201))
 
+    def test_publish_returns_public_path_and_public_endpoint_is_readable(self):
+        resume = Resume.objects.create(
+            user=self.user,
+            title="Public Resume",
+        )
+
+        response = self.client.post(f"/api/v1/resumes/{resume.id}/publish/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(
+            response.data["data"]["public_path"],
+            f"/public/resume/{resume.id}",
+        )
+        self.assertTrue(response.data["data"]["resume"]["is_public"])
+
+        public_client = APIClient()
+        public_response = public_client.get(f"/api/v1/public/resumes/{resume.id}/")
+
+        self.assertEqual(public_response.status_code, 200)
+        self.assertEqual(public_response.data["data"]["id"], resume.id)
+
+    def test_unpublished_resume_is_not_publicly_readable(self):
+        resume = Resume.objects.create(user=self.user, title="Private Resume")
+
+        response = APIClient().get(f"/api/v1/public/resumes/{resume.id}/")
+
+        self.assertEqual(response.status_code, 404)

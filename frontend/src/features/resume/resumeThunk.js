@@ -1,6 +1,25 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import resumeApi from "../../api/resumeApi";
 
+const publishErrorPayload = (error, fallback) => {
+    const payload = error?.response?.data;
+    const status = error?.response?.status;
+
+    if (payload) {
+        return {
+            ...payload,
+            message: payload.message || payload.detail || fallback,
+            status,
+        };
+    }
+
+    if (error?.code === "ECONNABORTED") {
+        return { message: "The publish request timed out. Please try again.", status };
+    }
+
+    return { message: error?.message || "Network error while publishing. Please try again.", status };
+};
+
 
 // Fetch All Resumes
 export const fetchResumes = createAsyncThunk(
@@ -123,13 +142,26 @@ export const publishResume = createAsyncThunk(
         try {
             const response = await resumeApi.publishResume(id);
 
-            return response.data;
+            const payload = response.data;
+            const publishedResume = payload?.data?.resume;
+            const publicPath = payload?.data?.public_path;
+
+            if (!payload?.success || !publishedResume || !publicPath) {
+                return rejectWithValue({
+                    message: "Resume was published, but the public link could not be retrieved. Please try again.",
+                    status: response.status,
+                });
+            }
+
+            return {
+                ...payload,
+                data: {
+                    ...payload.data,
+                    public_url: new URL(publicPath, window.location.origin).toString(),
+                },
+            };
         } catch (error) {
-            return rejectWithValue(
-                error.response?.data || {
-                    message: "Failed to publish resume.",
-                }
-            );
+            return rejectWithValue(publishErrorPayload(error, "Unable to publish resume."));
         }
     }
 );
@@ -142,7 +174,11 @@ export const unpublishResume = createAsyncThunk(
         try {
             const response = await resumeApi.unpublishResume(id);
 
-            return response.data;
+            const payload = response.data;
+            if (!payload?.success || !payload?.data?.resume) {
+                return rejectWithValue({ message: "The resume was unpublished, but its updated state could not be retrieved." });
+            }
+            return payload;
         } catch (error) {
             return rejectWithValue(
                 error.response?.data || {

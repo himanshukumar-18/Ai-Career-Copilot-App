@@ -67,18 +67,6 @@ const ExperienceSection = () => {
         experiences.length === 0 &&
         drafts.length === 0;
 
-    // Fails loudly in the console the moment the route param is wrong,
-    // instead of quietly sending NaN/null to the API later.
-    useEffect(() => {
-        if (resumeId && Number.isNaN(Number(resumeId))) {
-            // eslint-disable-next-line no-console
-            console.error(
-                "ExperienceSection: resumeId from the URL is not a valid number:",
-                resumeId
-            );
-        }
-    }, [resumeId]);
-
     useEffect(() => {
         if (resumeId) {
             dispatch(fetchExperiences(resumeId));
@@ -139,11 +127,6 @@ const ExperienceSection = () => {
         if (!resumeId || Number.isNaN(numericResumeId)) {
             toast.error(
                 "Resume ID is missing or invalid. Please reload the page."
-            );
-            // eslint-disable-next-line no-console
-            console.error(
-                "ExperienceSection: resumeId from useParams() is invalid:",
-                resumeId
             );
             return;
         }
