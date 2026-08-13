@@ -72,7 +72,8 @@ urlpatterns = [
         include(
             "apps.resume_ai.urls"
         )
-    )
+    ),
+    path("api/v1/project-lab/", include("apps.project_lab.urls"))
 ]
 
 if settings.DEBUG:

@@ -28,7 +28,7 @@ INSTALLED_APPS = [
 
     "apps.accounts",
     "apps.profiles",
-    "apps.projects",
+    "apps.project_lab",
     "apps.resumes",
     "apps.roadmaps",
     "apps.resume_ai"
