@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.project_lab.constants import ProjectStatus
 from apps.project_lab.exceptions import (
+    InvalidGenerationRequest,
     InvalidProjectStatusTransition,
     ProjectLabException,
     ProjectNotFoundError,
@@ -66,6 +67,7 @@ def save_generated_project(user, generated_project_id) -> UserProject:
 
     Raises:
         ProjectNotFoundError: if the generated project doesn't exist for this user.
+        InvalidGenerationRequest: if the project has already been saved.
     """
     try:
         generated = GeneratedProject.objects.get(id=generated_project_id, user=user)
@@ -77,6 +79,12 @@ def save_generated_project(user, generated_project_id) -> UserProject:
     except DatabaseError as exc:
         logger.exception("Database error fetching generated project %s", generated_project_id)
         raise ProjectLabException("Database error fetching generated project.") from exc
+
+    if UserProject.objects.filter(user=user, source_generation=generated).exists():
+        raise InvalidGenerationRequest(
+            "This project has already been saved to your list.",
+            details={"generated_project_id": str(generated_project_id)},
+        )
 
     try:
         return UserProject.objects.create(

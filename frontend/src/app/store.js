@@ -12,6 +12,7 @@ import skillsReducer from "../features/skills/skillSlice";
 import socialLinksReducer from "../features/socialLinks/socialLinksSlice";
 import summaryReducer from "../features/summary/summarySlice";
 import resumeAIReducer from "../features/resumeAI/resumeAISlice";
+import projectLabReducer from "../features/projectLab/projectLabSlice";
 
 const store = configureStore({
     reducer: {
@@ -28,7 +29,8 @@ const store = configureStore({
         socialLinks: socialLinksReducer,
         summary: summaryReducer,
         resumeAI: resumeAIReducer,
+        projectLab: projectLabReducer,
     },
 });
 
-export default store
+export default store;

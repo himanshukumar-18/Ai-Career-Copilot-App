@@ -216,22 +216,7 @@ GROQ_API_KEY = config("GROQ_API_KEY", default="")
 LLM_PROVIDER = config("LLM_PROVIDER", default="groq")
 LLM_MODEL = config(
     "LLM_MODEL",
-    default="llama-3.3-70b-versatile",
-)
-
-LLM_PROVIDER = config(
-    "LLM_PROVIDER",
-    default="groq",
-)
-
-GROQ_API_KEY = config(
-    "GROQ_API_KEY",
-    default="",
-)
-
-LLM_MODEL = config(
-    "LLM_MODEL",
-    default="llama-3.3-70b-versatile",
+    default="openai/gpt-oss-120b",
 )
 
 LLM_TEMPERATURE = config(

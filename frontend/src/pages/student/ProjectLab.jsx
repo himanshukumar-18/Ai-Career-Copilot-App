@@ -1,54 +1,201 @@
-import { motion } from "framer-motion";
-import {
-    Sparkles,
-    Clock3,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import useProjectLab from "../../hooks/useProjectLab";
+import ProjectLabHeader from "../../components/projectLab/ProjectLabHeader";
+import ProjectFilters from "../../components/projectLab/ProjectFilters";
+import ProjectGrid from "../../components/projectLab/ProjectGrid";
+import ProjectSkeleton from "../../components/projectLab/ProjectSkeleton";
+import ProjectEmpty from "../../components/projectLab/ProjectEmpty";
+import ProjectPagination from "../../components/projectLab/ProjectPagination";
+import ProjectGeneratorModal from "../../components/projectLab/ProjectGeneratorModal";
+import ProjectDetailModal from "../../components/projectLab/ProjectDetailModal";
+import UpdateStatusModal from "../../components/projectLab/UpdateStatusModal";
+import DeleteProjectModal from "../../components/projectLab/DeleteProjectModal";
 
 const ProjectLab = () => {
+    const {
+        myProjects,
+        generatedProjects,
+        pagination,
+        filters,
+        stats,
+        errors,
+        isListLoading,
+        isGenerateLoading,
+        isSaveLoading,
+        isUpdateLoading,
+        isDeleteLoading,
+        fetchProjects,
+        generateProjects,
+        saveProject,
+        updateProjectStatus,
+        deleteProject,
+        updateFilters,
+        resetAllFilters,
+        changePage,
+        resetGenerated,
+    } = useProjectLab();
+
+    // Modal state
+    const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+    const [detailProject, setDetailProject] = useState(null);
+    const [updateProject, setUpdateProject] = useState(null);
+    const [deleteProjectTarget, setDeleteProjectTarget] = useState(null);
+
+    // Initial fetch and refetch on filter/page change
+    useEffect(() => {
+        fetchProjects();
+    }, [fetchProjects, filters.status, filters.difficulty, filters.search, filters.ordering, filters.page]);
+
+    // Handle AI project generation
+    const handleGenerate = async (payload) => {
+        try {
+            await generateProjects(payload).unwrap();
+            toast.success("AI project suggestions generated!");
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to generate project ideas.");
+        }
+    };
+
+    // Handle snapshot saving a generated project
+    const handleSaveGeneratedProject = async (generatedId) => {
+        try {
+            await saveProject(generatedId).unwrap();
+            toast.success("Project saved to your Project Lab!");
+            fetchProjects();
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to save project.");
+        }
+    };
+
+    // Handle project status update
+    const handleUpdateStatusSubmit = async (payload) => {
+        try {
+            await updateProjectStatus(payload).unwrap();
+            toast.success("Project status updated successfully.");
+            setUpdateProject(null);
+            if (detailProject && detailProject.id === payload.id) {
+                setDetailProject((prev) => ({ ...prev, ...payload }));
+            }
+            fetchProjects();
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to update project.");
+        }
+    };
+
+    // Handle project deletion
+    const handleConfirmDelete = async () => {
+        if (!deleteProjectTarget) return;
+        try {
+            await deleteProject(deleteProjectTarget.id).unwrap();
+            toast.success("Project deleted successfully.");
+            setDeleteProjectTarget(null);
+            if (detailProject && detailProject.id === deleteProjectTarget.id) {
+                setDetailProject(null);
+            }
+            fetchProjects();
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : "Failed to delete project.");
+        }
+    };
+
+    // Extract saved generated IDs to display checkmarks in generator modal
+    const savedProjectIds = myProjects
+        .map((p) => p.source_generation_id)
+        .filter(Boolean);
+
+    const isFiltered =
+        Boolean(filters.status) ||
+        Boolean(filters.difficulty) ||
+        Boolean(filters.search) ||
+        filters.ordering !== "-updated_at";
+
     return (
-        <div className="min-h-[calc(100vh-80px)">
-            <div className="mx-auto">
+        <div className="space-y-6 pb-12">
+            {/* Header with Stats & Generate Trigger */}
+            <ProjectLabHeader
+                stats={stats}
+                onOpenGenerateModal={() => {
+                    resetGenerated();
+                    setIsGenerateModalOpen(true);
+                }}
+            />
 
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 25 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border border-zinc-800 bg-[var(--surface)]"
-                >
-                    <div className="flex flex-col items-center justify-center px-8 py-24 text-center">
+            {/* Filter Bar */}
+            <ProjectFilters
+                filters={filters}
+                onFilterChange={updateFilters}
+                onReset={resetAllFilters}
+            />
 
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.04, 1],
-                            }}
-                            transition={{
-                                repeat: Infinity,
-                                duration: 2,
-                            }}
-                            className="mb-8"
-                        >
-                            <Sparkles className="mx-auto h-20 w-20 text-red-500" />
-                        </motion.div>
+            {/* Main Content Grid / Loading / Empty */}
+            {isListLoading ? (
+                <ProjectSkeleton count={6} />
+            ) : myProjects.length === 0 ? (
+                <ProjectEmpty
+                    isFiltered={isFiltered}
+                    onOpenGenerateModal={() => {
+                        resetGenerated();
+                        setIsGenerateModalOpen(true);
+                    }}
+                    onResetFilters={resetAllFilters}
+                />
+            ) : (
+                <>
+                    <ProjectGrid
+                        projects={myProjects}
+                        onViewDetails={(proj) => setDetailProject(proj)}
+                        onUpdateStatus={(proj) => setUpdateProject(proj)}
+                        onDelete={(proj) => setDeleteProjectTarget(proj)}
+                    />
 
-                        <h2 className="text-5xl font-black uppercase tracking-[0.12em] text-white md:text-7xl">
-                            Coming Soon
-                        </h2>
+                    <ProjectPagination
+                        pagination={pagination}
+                        onPageChange={changePage}
+                    />
+                </>
+            )}
 
-                        <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-400">
-                            We're building an AI-powered Project Lab that helps you practice
-                            with real-world projects, improve your development skills, and
-                            prepare for internships and software engineering interviews.
-                        </p>
+            {/* AI Generator Modal */}
+            <ProjectGeneratorModal
+                isOpen={isGenerateModalOpen}
+                onClose={() => setIsGenerateModalOpen(false)}
+                onGenerate={handleGenerate}
+                onSaveProject={handleSaveGeneratedProject}
+                generatedProjects={generatedProjects}
+                isGenerating={isGenerateLoading}
+                isSaving={isSaveLoading}
+                generateError={errors.generateError}
+                savedProjectIds={savedProjectIds}
+            />
 
-                        <div className="mt-12 flex items-center gap-3 border border-red-500/30 bg-red-500/10 px-6 py-3">
-                            <Clock3 className="h-5 w-5 text-red-500" />
-                            <span className="text-sm font-semibold uppercase tracking-[0.25em] text-red-400">
-                                Under Development
-                            </span>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
+            {/* Detail View Modal */}
+            <ProjectDetailModal
+                isOpen={Boolean(detailProject)}
+                onClose={() => setDetailProject(null)}
+                project={detailProject}
+                onOpenUpdateStatusModal={(proj) => setUpdateProject(proj)}
+            />
+
+            {/* Update Status Modal */}
+            <UpdateStatusModal
+                isOpen={Boolean(updateProject)}
+                onClose={() => setUpdateProject(null)}
+                project={updateProject}
+                onUpdate={handleUpdateStatusSubmit}
+                isUpdating={isUpdateLoading}
+                updateError={errors.updateError}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <DeleteProjectModal
+                isOpen={Boolean(deleteProjectTarget)}
+                onClose={() => setDeleteProjectTarget(null)}
+                project={deleteProjectTarget}
+                onConfirmDelete={handleConfirmDelete}
+                isDeleting={isDeleteLoading}
+                deleteError={errors.deleteError}
+            />
         </div>
     );
 };

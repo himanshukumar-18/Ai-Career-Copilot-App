@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, Field, field_validator
 
-from ..constants import (
+from apps.project_lab.constants import (
     Difficulty,
     MAX_ESTIMATED_HOURS,
     MIN_ESTIMATED_HOURS,
@@ -24,9 +24,10 @@ class GeneratedProjectSchema(BaseModel):
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, value):
-        if value not in Difficulty.VALID_VALUES:
+        normalized = str(value).lower().strip()
+        if normalized not in Difficulty.VALID_VALUES:
             raise ValueError(f"difficulty must be one of {Difficulty.VALID_VALUES}")
-        return value
+        return normalized
 
     # estimated_hours must stay within a realistic, sane range
     @field_validator("estimated_hours")

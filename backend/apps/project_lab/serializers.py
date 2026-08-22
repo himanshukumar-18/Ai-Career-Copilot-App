@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 
-from .constants import (
+from apps.project_lab.constants import (
     Difficulty,
     MAX_PROJECT_COUNT,
     MAX_TECH_STACK_ITEMS,
@@ -10,7 +10,8 @@ from .constants import (
     MIN_TECH_STACK_ITEMS,
     ProjectStatus,
 )
-from .models import GeneratedProject, UserProject
+from apps.project_lab.models import GeneratedProject, UserProject
+from apps.project_lab.services.user_project_service import update_status
 
 
 # incoming request to generate AI project suggestions
@@ -108,3 +109,17 @@ class UserProjectSerializer(serializers.ModelSerializer):
     # returns None if the source generation was deleted rather than raising
     def get_source_generation_id(self, obj):
         return obj.source_generation_id
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+        new_status = validated_data.get("status", instance.status)
+        repo_link = validated_data.get("repo_link", instance.repo_link)
+        notes = validated_data.get("notes", instance.notes)
+
+        return update_status(
+            user=user,
+            user_project_id=instance.id,
+            new_status=new_status,
+            repo_link=repo_link,
+            notes=notes,
+        )

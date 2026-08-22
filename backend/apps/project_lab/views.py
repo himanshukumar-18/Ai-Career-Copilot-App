@@ -1,14 +1,17 @@
 """Views for the project_lab app."""
 
 import logging
-from rest_framework import status, viewsets
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from config.responses import ApiResponse, ApiResponseMixin
 
-from .exceptions import (
+from apps.project_lab.exceptions import (
     AIGenerationError,
     InvalidGenerationRequest,
     InvalidProjectStatusTransition,
@@ -18,14 +21,15 @@ from .exceptions import (
     ProjectLabException,
     ProjectNotFoundError,
 )
-from .serializers import (
+from apps.project_lab.models import UserProject
+from apps.project_lab.serializers import (
     GeneratedProjectSerializer,
     ProjectGenerationRequestSerializer,
     SaveGeneratedProjectSerializer,
     UpdateProjectStatusSerializer,
     UserProjectSerializer,
 )
-from .services import (
+from apps.project_lab.services import (
     delete_user_project,
     generate_and_save_projects,
     get_user_projects,
@@ -36,6 +40,28 @@ from .services import (
 logger = logging.getLogger(__name__)
 
 
+class UserProjectFilter(django_filters.FilterSet):
+    status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
+    difficulty = django_filters.CharFilter(field_name="difficulty", lookup_expr="exact")
+
+    class Meta:
+        model = UserProject
+        fields = ["status", "difficulty"]
+
+
+@extend_schema(
+    tags=["Project Lab"],
+    summary="Generate AI project ideas",
+    description="Generates tailored coding project ideas based on tech stack, difficulty, and requested count.",
+    request=ProjectGenerationRequestSerializer,
+    responses={
+        201: GeneratedProjectSerializer(many=True),
+        400: ApiResponse,
+        500: ApiResponse,
+        502: ApiResponse,
+        503: ApiResponse,
+    },
+)
 class GenerateProjectsView(ApiResponseMixin, APIView):
     """
     Endpoint for requesting AI-generated project suggestions.
@@ -108,6 +134,31 @@ class GenerateProjectsView(ApiResponseMixin, APIView):
             )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Project Lab"],
+        summary="List user projects",
+        description="Retrieve all projects saved or created by the authenticated user with filtering and search.",
+    ),
+    retrieve=extend_schema(
+        tags=["Project Lab"],
+        summary="Get user project detail",
+        description="Retrieve detailed progress for a specific user project.",
+    ),
+    create=extend_schema(
+        tags=["Project Lab"],
+        summary="Save generated project",
+        description="Snapshot an AI-generated project idea into the user's saved projects.",
+        request=SaveGeneratedProjectSerializer,
+        responses={201: UserProjectSerializer, 400: ApiResponse, 404: ApiResponse},
+    ),
+    destroy=extend_schema(
+        tags=["Project Lab"],
+        summary="Delete user project",
+        description="Remove a project from the authenticated user's workspace.",
+        responses={200: ApiResponse, 404: ApiResponse},
+    ),
+)
 class UserProjectViewSet(ApiResponseMixin, viewsets.ModelViewSet):
     """
     A user's saved and in-progress project tracking entries.
@@ -115,6 +166,11 @@ class UserProjectViewSet(ApiResponseMixin, viewsets.ModelViewSet):
 
     permission_classes = [IsAuthenticated]
     serializer_class = UserProjectSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = UserProjectFilter
+    search_fields = ["title", "description", "notes"]
+    ordering_fields = ["created_at", "updated_at", "estimated_hours", "title"]
+    ordering = ["-updated_at"]
 
     def get_queryset(self):
         return get_user_projects(self.request.user)
@@ -141,6 +197,13 @@ class UserProjectViewSet(ApiResponseMixin, viewsets.ModelViewSet):
                 request=request,
                 message=exc.message,
             )
+        except InvalidGenerationRequest as exc:
+            return ApiResponse.error(
+                request=request,
+                message=exc.message,
+                errors=exc.details,
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         except ProjectLabException as exc:
             return ApiResponse.error(
                 request=request,
@@ -149,6 +212,13 @@ class UserProjectViewSet(ApiResponseMixin, viewsets.ModelViewSet):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        tags=["Project Lab"],
+        summary="Update user project status",
+        description="Update project status (not_started -> in_progress -> completed), repo link, and notes.",
+        request=UpdateProjectStatusSerializer,
+        responses={200: UserProjectSerializer, 400: ApiResponse, 404: ApiResponse},
+    )
     @action(detail=True, methods=["patch"], url_path="status")
     def update_status(self, request, pk=None):
         serializer = UpdateProjectStatusSerializer(data=request.data)
