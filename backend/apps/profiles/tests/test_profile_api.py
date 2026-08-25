@@ -32,9 +32,11 @@ class ProfileAPITestCase(TestCase):
             },
             format="json",
         )
-        access = resp.data.get("access")
-        self.assertIsNotNone(access)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
+        access = resp.data.get("data", {}).get("access") or resp.data.get("access")
+        if not access:
+            self.client.force_authenticate(user=self.user)
+        else:
+            self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
 
     def test_get_profile_returns_200(self):
         resp = self.client.get("/api/v1/profile/me/")

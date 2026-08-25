@@ -31,7 +31,7 @@ const DEFAULT_VALUES = {
 };
 
 const getFormValues = (summary) => ({
-    content: summary?.content ?? "",
+    content: typeof summary === "string" ? summary : summary?.content ?? "",
 });
 
 const getErrorMessage = (error, fallbackMessage) => {

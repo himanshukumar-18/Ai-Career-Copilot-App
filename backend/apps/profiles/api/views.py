@@ -9,6 +9,7 @@ from rest_framework.permissions import (
 )
 
 from rest_framework.parsers import (
+    JSONParser,
     MultiPartParser,
     FormParser,
 )
@@ -27,6 +28,7 @@ class ProfileAPIView(
 ):
     
     parser_classes = [
+        JSONParser,
         MultiPartParser,
         FormParser,
     ]

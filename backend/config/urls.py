@@ -73,7 +73,10 @@ urlpatterns = [
             "apps.resume_ai.urls"
         )
     ),
-    path("api/v1/project-lab/", include("apps.project_lab.urls"))
+    path("api/v1/project-lab/", include("apps.project_lab.urls")),
+    path("api/v1/roadmaps/", include("apps.roadmaps.urls")),
+    path("api/v1/interview-prep/", include("apps.interview_prep.urls")),
+    path("api/v1/admin/", include("apps.admin_panel.urls")),
 ]
 
 if settings.DEBUG:

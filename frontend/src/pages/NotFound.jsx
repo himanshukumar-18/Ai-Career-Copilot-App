@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 
 const QUICK_LINKS = [
   { label: 'RESUME BUILDER', desc: 'Create your ATS-friendly resume', path: '/resume' },
-  { label: 'SKILLS', desc: 'Track your technical skills', path: '/skills' },
-  { label: 'AI ANALYSIS', desc: 'Get AI-powered career insights', path: '/analysis' },
+  { label: 'INTERVIEW PREP', desc: 'Practice AI mock interviews', path: '/interview-prep' },
+  { label: 'AI ANALYSIS', desc: 'Get AI-powered career insights', path: '/student/resume-analysis' },
 ]
 
 const NotFound = () => {

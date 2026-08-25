@@ -13,6 +13,9 @@ import socialLinksReducer from "../features/socialLinks/socialLinksSlice";
 import summaryReducer from "../features/summary/summarySlice";
 import resumeAIReducer from "../features/resumeAI/resumeAISlice";
 import projectLabReducer from "../features/projectLab/projectLabSlice";
+import careerRoadmapReducer from "../features/careerRoadmap/careerRoadmapSlice";
+import interviewPrepReducer from "../features/interviewPrep/interviewPrepSlice";
+import adminReducer from "../features/admin/adminSlice";
 
 const store = configureStore({
     reducer: {
@@ -30,6 +33,9 @@ const store = configureStore({
         summary: summaryReducer,
         resumeAI: resumeAIReducer,
         projectLab: projectLabReducer,
+        careerRoadmap: careerRoadmapReducer,
+        interviewPrep: interviewPrepReducer,
+        admin: adminReducer,
     },
 });
 

@@ -1,4 +1,5 @@
 from django.db import DatabaseError
+from django.http import Http404
 from rest_framework import status
 from rest_framework.exceptions import (
     APIException,
@@ -55,6 +56,28 @@ def custom_exception_handler(
     )
 
     if response is None:
+        from apps.roadmaps.exceptions import RoadmapException
+        from apps.interview_prep.exceptions import InterviewPrepException
+        from apps.project_lab.exceptions import ProjectLabException
+
+        if isinstance(exc, (RoadmapException, InterviewPrepException, ProjectLabException)):
+            project_logger.warning(
+                "Domain Exception at %s: %s",
+                getattr(request, "path", None),
+                exc.message,
+            )
+            if "NotFound" in exc.__class__.__name__:
+                return ApiResponse.not_found(
+                    request=request,
+                    message=exc.message,
+                )
+            return ApiResponse.error(
+                request=request,
+                message=exc.message,
+                errors=exc.details,
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
         if isinstance(exc, DatabaseError):
             project_logger.exception(
                 "Database error at %s",
@@ -137,7 +160,7 @@ def custom_exception_handler(
             ),
         )
 
-    if isinstance(exc, NotFound):
+    if isinstance(exc, (NotFound, Http404)):
 
         return ApiResponse.not_found(
             request=request,
@@ -187,15 +210,3 @@ def custom_exception_handler(
         message="Internal server error.",
     )
 
-logger = logging.getLogger("django")
-
-def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)  # whatever it already calls
-
-    if response is None:
-        # This is the unhandled exception being swallowed right now.
-        logger.error("Unhandled exception: %s", exc, exc_info=True)
-        traceback.print_exc()
-        return ApiResponse.server_error(request=context["request"].wsgi_request if hasattr(context["request"], "wsgi_request") else context["request"])
-
-    return response

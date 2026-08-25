@@ -116,60 +116,68 @@ const resumeSlice = createSlice({
             // create resume 
             .addCase(createResume.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
 
             .addCase(createResume.fulfilled, (state, action) => {
                 state.loading = false;
-
-                state.resumes.unshift(action.payload.data);
+                const newResume = action.payload?.data;
+                if (newResume) {
+                    state.resumes = [newResume, ...state.resumes.filter((r) => String(r.id) !== String(newResume.id))];
+                    state.selectedResume = newResume;
+                }
             })
 
             .addCase(createResume.rejected, (state, action) => {
                 state.loading = false;
-
                 state.error =
                     action.payload?.message || "Failed to create resume.";
             })
 
-
             // update resume
-            .addCase(updateResume.fulfilled, (state, action) => {
-                state.loading = false;
-
-                state.resumes = state.resumes.map((resume) =>
-                    resume.id === action.payload.data.id
-                        ? action.payload.data
-                        : resume
-                );
-
-                state.selectedResume = action.payload.data;
-            })
-
             .addCase(updateResume.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
 
+            .addCase(updateResume.fulfilled, (state, action) => {
+                state.loading = false;
+                const updatedData = action.payload?.data;
+                if (updatedData) {
+                    state.resumes = state.resumes.map((resume) =>
+                        String(resume.id) === String(updatedData.id)
+                            ? updatedData
+                            : resume
+                    );
+                    state.selectedResume = updatedData;
+                }
+            })
+
             .addCase(updateResume.rejected, (state, action) => {
                 state.loading = false;
-
                 state.error =
                     action.payload?.message || "Failed to update resume.";
             })
 
-
             // delete resume
+            .addCase(deleteResume.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+
             .addCase(deleteResume.fulfilled, (state, action) => {
                 state.loading = false;
-
+                const deletedId = String(action.payload);
                 state.resumes = state.resumes.filter(
-                    (resume) => resume.id !== action.payload
+                    (resume) => String(resume.id) !== deletedId
                 );
+                if (state.selectedResume && String(state.selectedResume.id) === deletedId) {
+                    state.selectedResume = null;
+                }
             })
 
             .addCase(deleteResume.rejected, (state, action) => {
                 state.loading = false;
-
                 state.error =
                     action.payload?.message || "Failed to delete resume.";
             })

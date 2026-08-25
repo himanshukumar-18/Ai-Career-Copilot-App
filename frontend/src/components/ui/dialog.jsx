@@ -37,12 +37,19 @@ DialogOverlay.displayName = "DialogOverlay";
 // ===============================
 
 const DialogContent = React.forwardRef(
-    ({ className = "", children, ...props }, ref) => (
+    ({ className = "", children, onCloseAutoFocus, ...props }, ref) => (
         <DialogPortal>
             <DialogOverlay />
 
             <DialogPrimitive.Content
                 ref={ref}
+                onCloseAutoFocus={(e) => {
+                    if (onCloseAutoFocus) {
+                        onCloseAutoFocus(e);
+                    } else {
+                        e.preventDefault();
+                    }
+                }}
                 className={`
                     fixed
                     left-1/2

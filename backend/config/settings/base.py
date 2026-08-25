@@ -31,7 +31,9 @@ INSTALLED_APPS = [
     "apps.project_lab",
     "apps.resumes",
     "apps.roadmaps",
-    "apps.resume_ai"
+    "apps.resume_ai",
+    "apps.interview_prep",
+    "apps.admin_panel",
 ]
 
 MIDDLEWARE = [
@@ -48,13 +50,25 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+import socket
+
+def _get_db_host():
+    host = config("DB_HOST", default="localhost")
+    if host == "postgres":
+        try:
+            socket.gethostbyname("postgres")
+            return "postgres"
+        except socket.gaierror:
+            return "localhost"
+    return host
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": config("DB_NAME"),
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),
+        "HOST": _get_db_host(),
         "PORT": config("DB_PORT"),
     }
 }
@@ -143,11 +157,18 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
 
 
+def _get_redis_location():
+    try:
+        socket.gethostbyname("redis")
+        return "redis://redis:6379/1"
+    except socket.gaierror:
+        return "redis://127.0.0.1:6379/1"
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
 
-        "LOCATION": "redis://redis:6379/1",
+        "LOCATION": _get_redis_location(),
 
         "OPTIONS": {
             "CLIENT_CLASS":

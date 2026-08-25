@@ -126,7 +126,7 @@ const ResumeAnalysis = () => {
 
     return (
         <main className="mx-auto w-full">
-            <div className="border border-zinc-800 bg-black">
+            <div className="border border-[var(--border)] bg-[var(--surface)]">
                 <ResumeAIHeader
                     onClose={() => navigate(-1)}
                     onAnalyze={() => runAnalysis(true)}

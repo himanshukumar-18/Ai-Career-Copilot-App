@@ -80,6 +80,16 @@ const AuthLayout = () => {
                                         </p>
                                     </div>
 
+                                    <div>
+                                        <p className="font-medium">
+                                            Project - lab
+                                        </p>
+
+                                        <p className="text-sm text-[var(--text-muted)] mt-1">
+                                            Generate AI-powered project and practice.
+                                        </p>
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -124,11 +134,7 @@ const AuthLayout = () => {
         text-[var(--text-muted)]
     "
                         >
-                            <p>AI Career Copilot v1.0</p>
-
-                            <p className="mt-2">
-                                Powered by React + Django
-                            </p>
+                            <p>I ❤️ AI Career Copilot</p>
                         </div>
 
                     </div>
@@ -146,7 +152,7 @@ const AuthLayout = () => {
                         <div className="lg:hidden border border-[var(--border)] mb-6 p-4">
 
                             <p className="font-mono text-xs tracking-[0.25em] uppercase text-[var(--accent)]">
-                                AI Career Copilot
+                                AI Career Copilot 
                             </p>
 
                         </div>

@@ -133,11 +133,11 @@ const Resume = () => {
 
       {/* Error State */}
       {error && (
-        <div className="border border-red-900 bg-red-950/30 p-5">
-          <h3 className="text-lg font-semibold text-red-400">
+        <div className="border border-red-500/40 bg-red-500/5 p-5 font-mono">
+          <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider">
             Unable to load resumes
           </h3>
-          <p className="mt-2 text-sm text-zinc-400">{error}</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">{error}</p>
         </div>
       )}
 
@@ -146,11 +146,11 @@ const Resume = () => {
 
       {/* No search match */}
       {!loading && !error && hasResumes && !hasResults && (
-        <div className="border border-zinc-800 bg-zinc-950 p-10 text-center">
-          <h3 className="text-xl font-semibold text-white">
+        <div className="border border-[var(--border)] bg-[var(--surface)] p-10 text-center font-mono">
+          <h3 className="text-lg font-bold text-white uppercase tracking-wider">
             No matching resumes
           </h3>
-          <p className="mt-2 text-zinc-400">
+          <p className="mt-2 text-xs text-[var(--text-muted)]">
             Try a different search keyword.
           </p>
         </div>

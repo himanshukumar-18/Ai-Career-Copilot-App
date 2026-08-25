@@ -17,6 +17,15 @@ const PreviewSection = ({ title, children }) => {
     );
 };
 
+const extractText = (val) => {
+    if (!val) return "";
+    if (typeof val === "string") return val.trim();
+    if (typeof val === "object") {
+        return (val.content || val.summary || val.text || val.description || "").trim();
+    }
+    return String(val).trim();
+};
+
 const ResumeEditorPreview = ({ resume, useLiveData = true }) => {
     const liveProfile = useSelector((state) => state.resumeProfile.profile);
     const liveSummary = useSelector((state) => state.summary.summary);
@@ -36,11 +45,12 @@ const ResumeEditorPreview = ({ resume, useLiveData = true }) => {
         resume?.title ||
         "Your Name";
 
-    const headline =
+    const headline = extractText(
         personal?.headline ||
         personal?.professional_headline ||
         personal?.role ||
-        "Professional Title";
+        "Professional Title"
+    );
 
     const email = personal?.email || "";
     const phone = personal?.phone || "";
@@ -58,13 +68,11 @@ const ResumeEditorPreview = ({ resume, useLiveData = true }) => {
         personal?.linkedin_url ||
         "";
 
-    const summary = personal?.summary || (
-        useLiveData && liveSummary
-            ? liveSummary.content
-            : resume?.summary?.content ||
-            resume?.summary ||
-            resume?.professional_summary ||
-            ""
+    const summary = extractText(
+        (useLiveData && liveSummary ? liveSummary : null) ||
+        personal?.summary ||
+        resume?.summary ||
+        resume?.professional_summary
     );
 
     const experiences = getArray(

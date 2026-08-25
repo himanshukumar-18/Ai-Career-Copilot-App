@@ -31,15 +31,15 @@ const PublicResume = () => {
     }, [resumeId]);
 
     return (
-        <main className="min-h-screen bg-black px-4 py-8 text-zinc-100 sm:px-6">
-            <div className="mx-auto max-w-2xl">
+        <main className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--text-primary)] sm:px-6">
+            <div className="mx-auto max-w-3xl">
                 {error ? (
-                    <div role="alert" className="border border-zinc-800 bg-zinc-950 p-7 text-center text-sm text-zinc-400">
+                    <div role="alert" className="border border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm font-mono text-[var(--text-muted)]">
                         {error}
                     </div>
                 ) : !resume ? (
-                    <div role="status" className="border border-zinc-800 bg-zinc-950 p-7 text-center text-sm text-zinc-400">
-                        Loading resume…
+                    <div role="status" className="border border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm font-mono text-[var(--text-muted)]">
+                        Loading public resume…
                     </div>
                 ) : (
                     <ResumeEditorPreview resume={resume} useLiveData={false} />

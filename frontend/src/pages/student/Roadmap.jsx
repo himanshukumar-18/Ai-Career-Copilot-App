@@ -1,55 +1,174 @@
-import { motion } from "framer-motion";
-import {
-  Sparkles,
-  Clock3,
-} from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import useCareerRoadmap from "../../features/careerRoadmap/useCareerRoadmap";
+import CareerRoadmapHeader from "../../components/careerRoadmap/CareerRoadmapHeader";
+import CareerRoleSelector from "../../components/careerRoadmap/CareerRoleSelector";
+import RoadmapGenerateCard from "../../components/careerRoadmap/RoadmapGenerateCard";
+import RoadmapProgressHeader from "../../components/careerRoadmap/RoadmapProgressHeader";
+import NextStepCard from "../../components/careerRoadmap/NextStepCard";
+import SkillGapAnalysis from "../../components/careerRoadmap/SkillGapAnalysis";
+import RoadmapTimeline from "../../components/careerRoadmap/RoadmapTimeline";
+import CompleteStepModal from "../../components/careerRoadmap/CompleteStepModal";
+import RoadmapSkeleton from "../../components/careerRoadmap/RoadmapSkeleton";
+import RoadmapError from "../../components/careerRoadmap/RoadmapError";
+import RoadmapEmpty from "../../components/careerRoadmap/RoadmapEmpty";
 
 const Roadmap = () => {
-  return (
-    <div className="min-h-[calc(100vh-80px)">
-      <div className="mx-auto">
+    const {
+        roles,
+        selectedRoleSlug,
+        selectedRole,
+        activeProgress,
+        nextStepData,
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border border-zinc-800 bg-[var(--surface)]"
-        >
-          {/* Coming Soon */}
-          <div className="flex flex-col items-center justify-center px-8 py-24 text-center">
+        isRolesLoading,
+        isGenerating,
+        isProgressLoading,
+        isCompleting,
 
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{
-                repeat: Infinity,
-                duration: 2,
-              }}
-            >
-              <Sparkles className="h-20 w-20 text-red-500" />
-            </motion.div>
+        rolesError,
+        generateError,
+        progressError,
 
-            <h2 className="mt-8 text-5xl font-black uppercase tracking-[0.12em] text-white md:text-7xl">
-              Coming Soon
-            </h2>
+        fetchRoles,
+        selectRole,
+        generateAIRoadmap,
+        fetchUserProgress,
+        completeStep,
+        fetchNextStep,
+    } = useCareerRoadmap();
 
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-400">
-              Your personalized AI roadmap is under development. It will guide
-              you step-by-step toward becoming a professional software engineer
-              with structured learning plans, real-world projects, interview
-              preparation, and career milestones.
-            </p>
+    const [modalStep, setModalStep] = useState(null);
 
-            <div className="mt-10 flex items-center gap-3 border border-red-500/30 bg-red-500/10 px-6 py-3">
-              <Clock3 className="h-5 w-5 text-red-500" />
-              <span className="text-sm font-semibold uppercase tracking-[0.25em] text-red-400">
-                Under Development
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
+    // 1. Initial load: Fetch available career roles
+    useEffect(() => {
+        fetchRoles().catch(() => {});
+    }, [fetchRoles]);
+
+    // 2. Fetch active progress when selected role changes
+    useEffect(() => {
+        if (selectedRoleSlug) {
+            fetchUserProgress(selectedRoleSlug)
+                .then(() => {
+                    fetchNextStep(selectedRoleSlug).catch(() => {});
+                })
+                .catch(() => {});
+        }
+    }, [selectedRoleSlug, fetchUserProgress, fetchNextStep]);
+
+    // Construct map of stepId -> stepProgress status & details for O(1) lookup
+    const userStepProgressesMap = useMemo(() => {
+        const map = {};
+        if (activeProgress?.step_progresses) {
+            activeProgress.step_progresses.forEach((sp) => {
+                const stepId = sp.step?.id || sp.step;
+                if (stepId) {
+                    map[stepId] = sp;
+                }
+            });
+        }
+        return map;
+    }, [activeProgress]);
+
+    const handleGenerate = (roleSlug, force = false) => {
+        generateAIRoadmap(roleSlug, force)
+            .then(() => {
+                fetchNextStep(roleSlug).catch(() => {});
+            })
+            .catch(() => {});
+    };
+
+    const handleConfirmCompleteStep = (stepId, notes) => {
+        completeStep(stepId, notes)
+            .then(() => {
+                setModalStep(null);
+                if (selectedRoleSlug) {
+                    fetchUserProgress(selectedRoleSlug).catch(() => {});
+                }
+            })
+            .catch(() => {});
+    };
+
+    const roadmap = activeProgress?.roadmap;
+    const phases = roadmap?.phases || [];
+    const skillGap = activeProgress?.skill_gap_analysis || {};
+
+    return (
+        <div className="space-y-8 pb-16">
+            {/* Header */}
+            <CareerRoadmapHeader
+                activeRoleTitle={selectedRole?.title}
+                onRegenerate={() => selectedRoleSlug && handleGenerate(selectedRoleSlug, true)}
+                isGenerating={isGenerating}
+            />
+
+            {/* Role Selection */}
+            {isRolesLoading ? (
+                <RoadmapSkeleton />
+            ) : (
+                <CareerRoleSelector
+                    roles={roles}
+                    selectedRoleSlug={selectedRoleSlug}
+                    onSelectRole={(slug) => selectRole(slug)}
+                    onGenerate={(slug) => handleGenerate(slug, false)}
+                    isGenerating={isGenerating}
+                    rolesError={rolesError}
+                    onRetry={() => fetchRoles().catch(() => {})}
+                />
+            )}
+
+            {/* AI Generation State */}
+            {isGenerating && (
+                <RoadmapGenerateCard roleTitle={selectedRole?.title} />
+            )}
+
+            {/* Errors */}
+            {(generateError || (progressError && progressError.status !== 404)) && (
+                <RoadmapError
+                    error={generateError || progressError}
+                    onRetry={() => selectedRoleSlug && handleGenerate(selectedRoleSlug, true)}
+                />
+            )}
+
+            {/* Active Roadmap Display */}
+            {!isGenerating && activeProgress && roadmap ? (
+                <div className="space-y-8">
+                    {/* Overall Progress Header */}
+                    <RoadmapProgressHeader progress={activeProgress} roadmap={roadmap} />
+
+                    {/* Next Recommended Step Banner */}
+                    <NextStepCard
+                        nextStepData={nextStepData}
+                        onCompleteStep={(step) => setModalStep(step)}
+                        isCompleting={isCompleting}
+                    />
+
+                    {/* Skill Gap Diagnostic */}
+                    <SkillGapAnalysis skillGap={skillGap} />
+
+                    {/* Phase Accordion Timeline */}
+                    <RoadmapTimeline
+                        phases={phases}
+                        userStepProgressesMap={userStepProgressesMap}
+                        onCompleteStep={(step) => setModalStep(step)}
+                        isCompleting={isCompleting}
+                    />
+                </div>
+            ) : (
+                !isGenerating && !isProgressLoading && progressError?.status === 404 && (
+                    <RoadmapEmpty onSelectRole={(slug) => handleGenerate(slug, false)} />
+                )
+            )}
+
+            {/* Step Completion Modal */}
+            <CompleteStepModal
+                isOpen={!!modalStep}
+                step={modalStep}
+                onClose={() => setModalStep(null)}
+                onConfirm={handleConfirmCompleteStep}
+                isSubmitting={isCompleting}
+            />
+        </div>
+    );
 };
 
 export default Roadmap;

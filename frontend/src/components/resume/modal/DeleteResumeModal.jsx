@@ -39,7 +39,10 @@ const DeleteResumeModal = ({ open, onOpenChange, resume }) => {
 
         if (deleteResume.fulfilled.match(result)) {
             toast.success("Resume deleted successfully.");
-            handleClose();
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+            onOpenChange(false);
             return;
         }
 
@@ -62,6 +65,7 @@ const DeleteResumeModal = ({ open, onOpenChange, resume }) => {
             }}
         >
             <DialogContent
+                onCloseAutoFocus={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => { if (loading) e.preventDefault(); }}
                 onPointerDownOutside={(e) => { if (loading) e.preventDefault(); }}
                 className="
