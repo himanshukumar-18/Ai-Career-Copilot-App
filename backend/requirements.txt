@@ -36,7 +36,8 @@ rpds-py==2026.5.1
 six==1.17.0
 sqlparse==0.5.5
 uritemplate==4.2.0
-urllib3==2.7.0
+whitenoise==6.9.0
+dj-database-url==2.3.0
 groq>=0.31.0
 pydantic>=2.11
 langchain>=0.3.0

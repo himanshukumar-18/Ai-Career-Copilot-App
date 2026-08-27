@@ -95,10 +95,11 @@ class AdminCareerRoleSerializer(serializers.ModelSerializer):
             "title",
             "slug",
             "category",
-            "icon",
             "description",
-            "demand_level",
-            "avg_salary_range",
+            "difficulty",
+            "estimated_duration_weeks",
+            "icon_name",
+            "is_active",
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]

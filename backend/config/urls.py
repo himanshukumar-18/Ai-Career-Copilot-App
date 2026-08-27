@@ -19,7 +19,14 @@ from drf_spectacular.views import (
 
 )
 
+from django.http import JsonResponse
+
+def health_check_view(request):
+    return JsonResponse({"status": "healthy", "service": "AI Career Copilot API"})
+
 urlpatterns = [
+    path("health/", health_check_view, name="health_check"),
+    path("api/v1/health/", health_check_view, name="api_health_check"),
     path(
         "admin/",
         admin.site.urls

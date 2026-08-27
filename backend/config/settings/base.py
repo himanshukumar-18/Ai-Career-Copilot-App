@@ -157,25 +157,32 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
 
 
-def _get_redis_location():
+redis_url = config("REDIS_URL", default=None)
+if not redis_url:
     try:
         socket.gethostbyname("redis")
-        return "redis://redis:6379/1"
+        redis_url = "redis://redis:6379/1"
     except socket.gaierror:
-        return "redis://127.0.0.1:6379/1"
+        redis_url = None
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-
-        "LOCATION": _get_redis_location(),
-
-        "OPTIONS": {
-            "CLIENT_CLASS":
-            "django_redis.client.DefaultClient",
-        },
+if redis_url:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": redis_url,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
 
 cloudinary.config(
     cloud_name=config(
