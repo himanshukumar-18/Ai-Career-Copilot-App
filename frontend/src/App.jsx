@@ -5,6 +5,8 @@ import AppRoutes from "./routes/AppRoutes";
 
 import { getMeThunk } from "./features/auth/authThunk";
 
+import ErrorBoundary from "./components/ui/ErrorBoundary";
+
 function App() {
 
   const dispatch = useDispatch();
@@ -19,14 +21,17 @@ function App() {
     if (token) {
 
       dispatch(
-        getMeThunk(token)
+        getMeThunk()
       );
-
     }
 
   }, [dispatch]);
 
-  return <AppRoutes />;
+  return (
+    <ErrorBoundary>
+      <AppRoutes />
+    </ErrorBoundary>
+  );
 }
 
 export default App;

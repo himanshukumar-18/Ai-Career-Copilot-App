@@ -80,6 +80,16 @@ const AuthLayout = () => {
                                         </p>
                                     </div>
 
+                                    <div>
+                                        <p className="font-medium">
+                                            Project - lab
+                                        </p>
+
+                                        <p className="text-sm text-[var(--text-muted)] mt-1">
+                                            Generate AI-powered project and practice.
+                                        </p>
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -113,11 +123,19 @@ const AuthLayout = () => {
 
                     {/* Footer */}
 
-                    <div className="border-t border-[var(--border)] p-6">
+                    <div className="border-t border-[var(--border)] p-4">
 
-                        <p className="font-mono text-xs tracking-[0.2em] text-[var(--text-muted)] uppercase text-center">
-                            Built with ❤️ by Himanshu Kumar • AI Career Copilot
-                        </p>
+                        <div
+                            className="
+        text-center
+        text-[10px]
+        uppercase
+        tracking-[0.2em]
+        text-[var(--text-muted)]
+    "
+                        >
+                            <p>I ❤️ AI Career Copilot</p>
+                        </div>
 
                     </div>
 
@@ -134,7 +152,7 @@ const AuthLayout = () => {
                         <div className="lg:hidden border border-[var(--border)] mb-6 p-4">
 
                             <p className="font-mono text-xs tracking-[0.25em] uppercase text-[var(--accent)]">
-                                AI Career Copilot
+                                AI Career Copilot 
                             </p>
 
                         </div>

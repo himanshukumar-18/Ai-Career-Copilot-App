@@ -1,5 +1,8 @@
 from pathlib import Path
 from decouple import config
+import cloudinary
+from config.logging import LOGGING as DJANGO_LOGGING
+
 
 
 RATELIMIT_VIEW = (
@@ -18,14 +21,19 @@ INSTALLED_APPS = [
 
     "rest_framework",
     "corsheaders",
+    "cloudinary",
+    "cloudinary_storage",
+    "django_filters",
+    "drf_spectacular",
 
     "apps.accounts",
     "apps.profiles",
-    "apps.skills",
-    "apps.projects",
+    "apps.project_lab",
     "apps.resumes",
-    "apps.ai_engine",
     "apps.roadmaps",
+    "apps.resume_ai",
+    "apps.interview_prep",
+    "apps.admin_panel",
 ]
 
 MIDDLEWARE = [
@@ -42,13 +50,25 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+import socket
+
+def _get_db_host():
+    host = config("DB_HOST", default="localhost")
+    if host == "postgres":
+        try:
+            socket.gethostbyname("postgres")
+            return "postgres"
+        except socket.gaierror:
+            return "localhost"
+    return host
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": config("DB_NAME"),
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),
+        "HOST": _get_db_host(),
         "PORT": config("DB_PORT"),
     }
 }
@@ -97,9 +117,32 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    
+    "DEFAULT_PAGINATION_CLASS": (
+
+        "config.pagination.StandardResultsPagination"
+
+    ),
+
+    "PAGE_SIZE": 10,
+    
+    "DEFAULT_FILTER_BACKENDS": [
+
+        "django_filters.rest_framework.DjangoFilterBackend",
+
+        "rest_framework.filters.SearchFilter",
+
+        "rest_framework.filters.OrderingFilter",
+
+    ],
+    
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    
+    "EXCEPTION_HANDLER": "config.exception_handler.custom_exception_handler"
 }
 
 GOOGLE_CLIENT_ID = config(
@@ -107,17 +150,114 @@ GOOGLE_CLIENT_ID = config(
 )
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-# SMTP settings (provide these via environment variables / .env)
-# Example:
-# EMAIL_HOST=smtp.gmail.com
-# EMAIL_PORT=587
-# EMAIL_HOST_USER=your_email@gmail.com
-# EMAIL_HOST_PASSWORD=your_app_password
-# EMAIL_USE_TLS=True
-# DEFAULT_FROM_EMAIL="your_email@gmail.com"
 EMAIL_HOST = config("EMAIL_HOST", default="")
 EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
+
+
+redis_url = config("REDIS_URL", default=None)
+if not redis_url:
+    try:
+        socket.gethostbyname("redis")
+        redis_url = "redis://redis:6379/1"
+    except socket.gaierror:
+        redis_url = None
+
+if redis_url:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": redis_url,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
+
+cloudinary.config(
+    cloud_name=config(
+        "CLOUDINARY_CLOUD_NAME"
+    ),
+
+    api_key=config(
+        "CLOUDINARY_API_KEY"
+    ),
+
+    api_secret=config(
+        "CLOUDINARY_API_SECRET"
+    ),
+)
+
+SPECTACULAR_SETTINGS = {
+
+    "TITLE": "AI Career Copilot API",
+
+    "DESCRIPTION": """
+Production-ready REST API for AI Career Copilot.
+
+Features
+
+- Authentication
+- User Profile
+- Resume Builder
+- AI Resume Generator
+
+""",
+
+    "VERSION": "1.0.0",
+
+    "SERVE_INCLUDE_SCHEMA": False,
+
+    "COMPONENT_SPLIT_REQUEST": True,
+
+    "SCHEMA_PATH_PREFIX": "/api/v1",
+
+    "CONTACT": {
+
+        "name": "Himanshu Kumar",
+
+        "email": "rajh5343@example.com",
+
+    },
+
+    "LICENSE": {
+
+        "name": "MIT",
+
+    },
+
+}
+
+LOGGING = DJANGO_LOGGING
+
+GROQ_API_KEY = config("GROQ_API_KEY", default="")
+LLM_PROVIDER = config("LLM_PROVIDER", default="groq")
+LLM_MODEL = config(
+    "LLM_MODEL",
+    default="openai/gpt-oss-120b",
+)
+
+LLM_TEMPERATURE = config(
+    "LLM_TEMPERATURE",
+    default=0.2,
+)
+
+LLM_MAX_TOKENS = config(
+    "LLM_MAX_TOKENS",
+    default=4096,
+)
+
+LLM_TIMEOUT = config(
+    "LLM_TIMEOUT",
+    default=60,
+)

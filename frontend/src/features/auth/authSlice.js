@@ -101,6 +101,8 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.isSuccess = true;
 
+                state.message = "Login successful";
+
                 state.accessToken =
                     action.payload.access;
 
@@ -213,6 +215,11 @@ const authSlice = createSlice({
                         true;
 
                     state.isLoading = false;
+
+                    state.isSuccess = true;
+
+                    state.message =
+                        "Login successful";
                 }
             )
 

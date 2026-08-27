@@ -1,0 +1,15 @@
+export const selectAdminDashboardStats = (state) => state.admin.dashboardStats;
+export const selectAdminActivities = (state) => state.admin.activities;
+export const selectAdminStudents = (state) => state.admin.students;
+export const selectAdminStudentsPagination = (state) => state.admin.studentsPagination;
+export const selectAdminSelectedStudent = (state) => state.admin.selectedStudent;
+export const selectAdminCareerRoles = (state) => state.admin.careerRoles;
+export const selectAdminResources = (state) => state.admin.resources;
+export const selectAdminResumesData = (state) => state.admin.resumesData;
+export const selectAdminAIMonitoring = (state) => state.admin.aiMonitoring;
+export const selectAdminAnalytics = (state) => state.admin.analytics;
+export const selectAdminHealth = (state) => state.admin.health;
+export const selectAdminSettings = (state) => state.admin.settings;
+export const selectAdminIsLoading = (state) => state.admin.isLoading;
+export const selectAdminIsError = (state) => state.admin.isError;
+export const selectAdminMessage = (state) => state.admin.message;

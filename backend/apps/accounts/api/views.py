@@ -1,20 +1,19 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
+    TokenRefreshView,
 )
 from django.utils import timezone
+from django.core.cache import cache
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from django_ratelimit.core import is_ratelimited
-from rest_framework import status
 
 from .serializers import (
     RegisterSerializer,
@@ -29,6 +28,7 @@ from apps.accounts.services.google_auth import (
 )
 
 from apps.accounts.models import User
+from config.responses import ApiResponse, ApiResponseMixin
 
 @method_decorator(
     ratelimit(
@@ -40,6 +40,7 @@ from apps.accounts.models import User
     name = "dispatch",
 ) 
 class RegisterAPIView(
+    ApiResponseMixin,
     generics.CreateAPIView
 ):
     permission_classes = [AllowAny]
@@ -61,12 +62,9 @@ class RegisterAPIView(
             increment=True,
         ):
 
-            return Response(
-                {
-                    "detail":
-                    "Too many registration attempts. Please wait 1 minute."
-                },
-                status=status.HTTP_429_TOO_MANY_REQUESTS
+            return ApiResponse.too_many_requests(
+                request=request,
+                message="Too many registration attempts. Please wait 1 minute.",
             )
 
         return super().create(
@@ -108,18 +106,49 @@ class LoginAPIView(
             increment=True,
         ):
 
-            return Response(
-                {
-                    "detail":
-                    "Too many login attempts. Please wait 1 minute."
-                },
-                status=status.HTTP_429_TOO_MANY_REQUESTS
+            return ApiResponse.too_many_requests(
+                request=request,
+                message="Too many login attempts. Please wait 1 minute.",
             )
 
-        return super().post(
-            request,
-            *args,
-            **kwargs
+        serializer = self.get_serializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        return ApiResponse.success(
+            request=request,
+            data=serializer.validated_data,
+            message="Login successful.",
+        )
+
+
+class RefreshTokenAPIView(
+    TokenRefreshView
+):
+
+    def post(
+        self,
+        request,
+        *args,
+        **kwargs,
+    ):
+
+        serializer = self.get_serializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        return ApiResponse.success(
+            request=request,
+            data=serializer.validated_data,
+            message="Token refreshed successfully.",
         )
 
 
@@ -128,13 +157,38 @@ class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        
+        cache_key = (
+            f"user_{request.user.id}"
+        )
+        
+        cache_user = (
+            cache.get(
+                cache_key
+            )
+        )
+        
+        if cache_user:
+            return ApiResponse.success(
+                request=request,
+                data=cache_user,
+                message="User fetched successfully.",
+            )
 
         serializer = UserSerializer(
             request.user
         )
+        
+        cache.set(
+            cache_key,
+            serializer.data,
+            timeout=300,
+        )
 
-        return Response(
-            serializer.data
+        return ApiResponse.success(
+            request=request,
+            data=serializer.data,
+            message="User fetched successfully.",
         )
 
 @method_decorator(
@@ -160,12 +214,9 @@ class GoogleLoginAPIView(APIView):
             increment=True,
         ):
 
-            return Response(
-                {
-                    "detail":
-                    "Too many Google login attempts. Please wait 1 minute."
-                },
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            return ApiResponse.too_many_requests(
+                request=request,
+                message="Too many Google login attempts. Please wait 1 minute.",
             )
 
         serializer = GoogleAuthSerializer(
@@ -207,26 +258,25 @@ class GoogleLoginAPIView(APIView):
                 user
             )
 
-            return Response(
-                {
-                    "access":
-                        str(
-                            refresh.access_token
-                        ),
-
-                    "refresh":
-                        str(refresh),
-                }
+            return ApiResponse.success(
+                request=request,
+                data={
+                    "access": str(
+                        refresh.access_token
+                    ),
+                    "refresh": str(refresh),
+                },
+                message="Google login successful.",
             )
 
         except Exception:
 
-            return Response(
-                {
-                    "detail":
-                    "Invalid Google Token"
+            return ApiResponse.validation_error(
+                request=request,
+                errors={
+                    "detail": "Invalid Google Token",
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                message="Invalid Google Token",
             )
 
 @method_decorator(
@@ -257,12 +307,9 @@ class VerifyOTPAPIView(
             increment=True,
         ):
 
-            return Response(
-                {
-                    "detail":
-                    "Too many OTP verification attempts. Please wait 1 minute."
-                },
-                status=status.HTTP_429_TOO_MANY_REQUESTS
+            return ApiResponse.too_many_requests(
+                request=request,
+                message="Too many OTP verification attempts. Please wait 1 minute.",
             )
 
         email = request.data.get(
@@ -286,12 +333,12 @@ class VerifyOTPAPIView(
                 < timezone.now()
             ):
 
-                return Response(
-                    {
-                        "detail":
-                        "OTP Expired"
+                return ApiResponse.validation_error(
+                    request=request,
+                    errors={
+                        "detail": "OTP Expired",
                     },
-                    status=400
+                    message="OTP Expired",
                 )
 
             verification.is_verified = True
@@ -300,21 +347,19 @@ class VerifyOTPAPIView(
             verification.user.is_verified = True
             verification.user.save()
 
-            return Response(
-                {
-                    "detail":
-                    "Email Verified Successfully"
-                }
+            return ApiResponse.success(
+                request=request,
+                message="Email Verified Successfully",
             )
 
         except OTPVerification.DoesNotExist:
 
-            return Response(
-                {
-                    "detail":
-                    "Invalid OTP"
+            return ApiResponse.validation_error(
+                request=request,
+                errors={
+                    "detail": "Invalid OTP",
                 },
-                status=400
+                message="Invalid OTP",
             )
 
 
@@ -327,12 +372,9 @@ def create(self, request, *args, **kwargs):
         rate="3/m",
         increment=True,
     ):
-        return Response(
-            {
-                "detail":
-                "Too many registration attempts. Please wait 1 minute."
-            },
-            status=status.HTTP_429_TOO_MANY_REQUESTS
+        return ApiResponse.too_many_requests(
+            request=request,
+            message="Too many registration attempts. Please wait 1 minute.",
         )
 
     return super().create(
